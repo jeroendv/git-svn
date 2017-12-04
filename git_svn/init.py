@@ -21,10 +21,13 @@ def parse_cli_args():
 
     args = parser.parse_args()
 
+
+
     # register custom exception handler
     h = ExceptionHandle(args.debug)
     sys.excepthook = h.exception_handler
 
+    DebugLog.enabled = args.debug
     with DebugLogScopedPush("cli arguments:"):
         DebugLog.print(str(args))
     
