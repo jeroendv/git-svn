@@ -86,7 +86,7 @@ def main():
 
     # fetching in a svn checkout will fail
     # this failure is however harmless and can be ignored
-    cli_cmd = "git svn fetch -r %i:HEAD" % (rev-1)
+    cli_cmd = "git svn fetch -r %i" % rev
     subprocess.call(cli_cmd)
     subprocess.check_output("git checkout --force master")
 
