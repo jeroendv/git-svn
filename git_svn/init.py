@@ -25,6 +25,11 @@ def parse_cli_args():
     parser.add_argument("-N", "--dry-run",
                         help="Do not perform any actions, only simulate them.",
                         action="store_true")
+    
+    parser.add_argument("-id", "--ignore-dir",
+                        help="exclude an svn folder from git.",
+                        default=[],
+                        nargs="*")
 
     args = parser.parse_args()
 
@@ -55,9 +60,34 @@ class ExceptionHandle:
         if (self.debug):
             traceback.print_tb(tb)
 
+class IgnoreDirs:
+    def __init__(self):
+        self.ignoreDirs = []
+
+    def hasIgnoreDirs(self):
+        return len(self.ignoreDirs) > 0
+
+    def appendDir(self, path):
+        if not os.path.isdir(path):
+            raise Exception("Path '%s' is not a folder" % path)
+
+        path = path.replace('\\', '/')
+        if path[-1] != '/':
+            path += '/'
+        self.ignoreDirs.append(path)
+
+    
+    def buildGitSvnIgnorePathRegex(self):
+        return "(" + "|".join(self.ignoreDirs) + ")"
+
 def main():
     global args
     args = parse_cli_args()
+
+    ignoredDirs = IgnoreDirs()
+    for p in args.ignore_dir:
+        ignoredDirs.appendDir(p)
+
     xml = subprocess.check_output("svn info --xml").decode()
     info_root = ET.fromstring(xml)
 
@@ -83,6 +113,9 @@ def main():
     subprocess.check_output("git config --local --unset-all svn-remote.svn.fetch")
     cli_cmd = 'git config --local --add svn-remote.svn.fetch    "%s:refs/remotes/git-svn/%s"' % (branchpath, branchname)
     subprocess.check_output(cli_cmd)
+
+    subprocess.check_output('git config --local --add svn-remote.svn.ignore-paths "%s"' % ignoredDirs.buildGitSvnIgnorePathRegex())
+
 
     # fetching in a svn checkout will fail
     # this failure is however harmless and can be ignored
