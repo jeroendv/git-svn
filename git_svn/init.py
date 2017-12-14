@@ -127,7 +127,8 @@ def main():
     cli_cmd = 'git config --local --add svn-remote.svn.fetch    "%s:refs/remotes/git-svn/%s"' % (branchpath, branchname)
     subprocess.check_output(cli_cmd)
 
-    subprocess.check_output('git config --local --add svn-remote.svn.ignore-paths "%s"' % ignoredDirs.buildGitSvnIgnorePathRegex())
+    if ignoredDirs.hasIgnoreDirs():
+        subprocess.check_output('git config --local --add svn-remote.svn.ignore-paths "%s"' % ignoredDirs.buildGitSvnIgnorePathRegex())
 
 
     # fetching in a svn checkout will fail
