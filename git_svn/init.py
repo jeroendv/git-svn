@@ -14,18 +14,17 @@ def parse_cli_args():
     parser = argparse.ArgumentParser(description="create a git svn bridge repo in an svn working copy")
 
     parser.add_argument("-v", "--verbose",
-                    help="increase output verbosity",
-                    action="store_true")
+                        help="increase output verbosity",
+                        action="store_true")
 
     parser.add_argument("-d", "--debug",
-                    help="enable debug output",
-                    action="store_true")
-                   
+                        help="enable debug output",
+                        action="store_true")
 
     parser.add_argument("-N", "--dry-run",
                         help="Do not perform any actions, only simulate them.",
                         action="store_true")
-    
+
     parser.add_argument("-id", "--ignore-dir",
                         help="exclude an svn folder from git.",
                         default=[],
@@ -106,6 +105,17 @@ def main():
     assert "^/" == relative_url[:2]
     branchpath = relative_url[2:]
     branchname = os.path.basename(relative_url)
+    if args.verbose:
+        print("root-url: " + root_url)
+        print("branch-path: " + branchpath)
+        print("branchname: " + branchname)
+        print("revision : " + str(rev))
+        if ignoredDirs.hasIgnoreDirs():
+            print("ignored-paths:\n" + "\n\t".join(ignoredDirs.ignoreDirs))
+
+    if args.dry_run:
+        return
+
 
     cli_cmd = 'git svn init "%s"' % root_url
     subprocess.check_output(cli_cmd)
