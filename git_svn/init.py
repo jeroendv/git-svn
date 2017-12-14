@@ -31,6 +31,9 @@ def parse_cli_args():
                         default=[],
                         nargs="*")
 
+    parser.add_argument("-r", "--revision",
+                        help="specify the revision form where to start git svn fetch.")
+
     args = parser.parse_args()
 
 
@@ -101,7 +104,10 @@ def main():
 
     n = info_root.findall('./entry/commit')
     assert 1 == len(n)
-    rev = int(n[0].get('revision'))
+    wc_rev = int(n[0].get('revision'))
+
+    if args.revision is not None:
+        rev = int(args.revision)
 
     assert "^/" == relative_url[:2]
     branchpath = relative_url[2:]
