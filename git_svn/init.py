@@ -6,6 +6,7 @@ from git_svn.debug import *
 import argparse
 import subprocess
 from xml.etree import ElementTree as ET
+import urllib.parse
 
 args = []
 
@@ -96,7 +97,7 @@ def main():
 
     n = info_root.findall("./entry/relative-url")
     assert 1 == len(n)
-    relative_url = n[0].text
+    relative_url = urllib.parse.unquote(n[0].text)
 
     n = info_root.findall('./entry/commit')
     assert 1 == len(n)
@@ -105,6 +106,8 @@ def main():
     assert "^/" == relative_url[:2]
     branchpath = relative_url[2:]
     branchname = os.path.basename(relative_url)
+    branchname = branchname.replace(' ',"_")
+
     if args.verbose:
         print("root-url: " + root_url)
         print("branch-path: " + branchpath)
