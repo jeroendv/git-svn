@@ -104,7 +104,7 @@ def main():
 
     n = info_root.findall('./entry/commit')
     assert 1 == len(n)
-    wc_rev = int(n[0].get('revision'))
+    rev = int(n[0].get('revision'))
 
     if args.revision is not None:
         rev = int(args.revision)
