@@ -1,3 +1,7 @@
+from __future__ import print_function
+
+from six.moves import urllib
+
 import sys
 import traceback
 import os
@@ -6,7 +10,8 @@ from git_svn.debug import *
 import argparse
 import subprocess
 from xml.etree import ElementTree as ET
-import urllib.parse
+
+
 
 args = []
 

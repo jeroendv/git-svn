@@ -1,3 +1,4 @@
+from __future__ import print_function
 
 class DebugLogScopedPush:
     def __init__(self, msg = None):
@@ -21,22 +22,25 @@ class DebugLog:
     indentLvl = 0
     enabled = False
 
+    @staticmethod
     def print(msg):
         # skip debug messages if debug mode is not enabled!
-        if (not DebugLog.enabled):
-            return 
+        if DebugLog.enabled:
+            print("|  "*DebugLog.indentLvl + msg)
 
-        print("|  "*DebugLog.indentLvl + msg)
-
+    @staticmethod
     def push():
         DebugLog.indentLvl += 1
         return DebugLog.indentLvl
 
+    @staticmethod
     def scopedPush(msg = None):
         return DebugLogScopedPush(msg)
 
+    @staticmethod
     def pop():
         newIndentLvl = DebugLog.indentLvl - 1
+
         # indentLvl can't become negative
         if newIndentLvl < 0:
             newIndentLvl = 0
