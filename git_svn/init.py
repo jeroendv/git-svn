@@ -31,7 +31,7 @@ def parse_cli_args():
                         help="Do not perform any actions, only simulate them.",
                         action="store_true")
 
-    parser.add_argument("-id", "--ignore-dir",
+    parser.add_argument("--ignore-dir",
                         help="exclude an svn folder from git.",
                         default=[],
                         nargs="*")
