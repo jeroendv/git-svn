@@ -37,7 +37,7 @@ def parse_cli_args():
                         nargs="*")
 
     parser.add_argument("-r", "--revision",
-                        help="specify the revision form where to start git svn fetch.")
+                        help="specify the revision form where to start git svn fetch (defaults to svn BASE revision).")
 
     args = parser.parse_args()
 
