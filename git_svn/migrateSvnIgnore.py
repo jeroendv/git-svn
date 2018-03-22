@@ -65,6 +65,41 @@ def main():
         f.write("# git check-ignore -v <path>\n")
         f.write("\n")
 
+        # ignore the paths that are git-svn bridge itself ignores
+        #
+        #   .git/config
+        #   -----------
+        #   [svn-remote "svn"]
+        #     url = http://source-be.mtrs.intl/svn/focus
+        #     fetch = Main/Focus/Focus_Main:refs/remotes/git-svn/Focus_Main
+        #     ignore-paths = (packages/|Source/Packages/|Source/libraries/Packages/)
+        f.write("ignore the paths that are git-svn bridge itself ignores\n")
+        with open(".git/config", 'r') as configfile: 
+            for line  in configfile:
+                if "ignore-paths = " not in line:
+                    continue
+                
+                (key,sep,value) = line.partition("=")
+                assert sep.strip() == "="
+                assert key.strip()  == "ignore-paths"
+
+                value = value.strip()
+                assert value.startswith('(')
+                assert value.endswith(')')
+                value = value[1:-1]
+
+                ignoredPaths = value.split('|')
+                for p in ignoredPaths:
+                    if not p.startswith('/'):
+                        p = '/' + p
+                    if not p.endswith('/'):
+                        p = p + "/"
+                    f.write(p + "\n")
+
+        f.write("\n")
+                
+
+
         # the .svn/ metadata folder
         f.write("## ignore all '.svn' folders\n")
         f.write("**/.svn/" + "\n")
