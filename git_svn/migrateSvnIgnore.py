@@ -126,10 +126,10 @@ def main():
                 dirs.remove(".svn")
         
         # migrate the svn:ignore property
-        cmd = "git svn show-ignore"
+        cmd = ["git", "svn", "show-ignore"]
         f.write("\n")        
         f.write("## mirror the \svn:ignore' property\n")
-        f.write("# $ " + cmd + "\n")
+        f.write("# $ " + " ".join(cmd) + "\n")
         svnIgnoreRules = subprocess.check_output(cmd).decode()
         f.write(svnIgnoreRules + "\n")
 
