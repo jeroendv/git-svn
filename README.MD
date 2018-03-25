@@ -14,6 +14,13 @@ will
 
 # how to install
 
+requirements:
+* git
+* svn
+* git-svn
+* python
+
+setup:
 * clone this repo
 * pip install ./
 
