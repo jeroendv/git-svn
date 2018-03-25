@@ -73,7 +73,7 @@ def main():
         #     url = http://source-be.mtrs.intl/svn/focus
         #     fetch = Main/Focus/Focus_Main:refs/remotes/git-svn/Focus_Main
         #     ignore-paths = (packages/|Source/Packages/|Source/libraries/Packages/)
-        f.write("ignore the paths that are git-svn bridge itself ignores\n")
+        f.write("## ignore the paths that the git-svn bridge itself ignores\n")
         with open(".git/config", 'r') as configfile: 
             for line  in configfile:
                 if "ignore-paths = " not in line:
