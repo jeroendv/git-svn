@@ -96,7 +96,7 @@ def main():
     for p in args.ignore_dir:
         ignoredDirs.appendDir(p)
 
-    xml = subprocess.check_output("svn info --xml").decode()
+    xml = subprocess.check_output(["svn",  "info",  "--xml"]).decode()
     info_root = ET.fromstring(xml)
 
     n = info_root.findall("./entry/repository/root")
@@ -131,11 +131,12 @@ def main():
         return
 
 
-    cli_cmd = 'git svn init "%s"' % root_url
+    cli_cmd =["git", "svn",  "init", root_url]
     subprocess.check_output(cli_cmd)
 
-    subprocess.check_output("git config --local --unset-all svn-remote.svn.fetch")
-    cli_cmd = 'git config --local --add svn-remote.svn.fetch    "%s:refs/remotes/git-svn/%s"' % (branchpath, branchname)
+    subprocess.check_output(["git", "config", "--local", "--unset-all", "svn-remote.svn.fetch"])
+    cli_cmd = ['git',  "config", "--local",
+        "--add", "svn-remote.svn.fetch",  "%s:refs/remotes/git-svn/%s" % (branchpath, branchname)]
     subprocess.check_output(cli_cmd)
 
     if ignoredDirs.hasIgnoreDirs():
@@ -144,8 +145,8 @@ def main():
 
     # fetching in a svn checkout will fail
     # this failure is however harmless and can be ignored
-    cli_cmd = "git svn fetch -r %i" % rev
+    cli_cmd = ["git", "svn", "fetch", "-r", str(rev)]
     subprocess.call(cli_cmd)
-    subprocess.check_output("git checkout --force master")
+    subprocess.check_output(["git", "checkout", "--force", "master"])
 
     sys.exit(0)
