@@ -115,11 +115,13 @@ def main():
         # ignore svn externals
         f.write("## ignore all svn external checkouts\n")
         for (root, dirs, files) in os.walk("./"):
-            if (".svn" in dirs):
-                # root is an svn external as identified by the presence of a '.svn' folder
-                # drop the relative qualifier
-                assert root.startswith("./")
-                path = root[2:]
+            # drop the relative qualifier
+            assert root.startswith("./")
+            path = root[2:]
+
+            # root is an svn external as identified by
+            # the presence of a '.svn' folder that is not in the repo WC root folder 
+            if (".svn" in dirs and len(path) > 0 ):            
                 # git config required unix path separators (i.e. forward slash '/')
                 path = path.replace("\\", "/")
                 # append final path separator to ensure the rule only matches with folders
