@@ -1,4 +1,4 @@
-a *simple* [git svn clone](https://git-scm.com/docs/git-svn) wrapper for use inside an existing svn checkout.
+a set of convenience functions for  [git svn clone](https://git-scm.com/docs/git-svn) for the specific usecase of creating a git-svn bridge *inside* an existing svn checkout.
 
 ```
 $ svn update                    # ensure clean svn working copy
@@ -8,7 +8,12 @@ $ git-svn-migrateSvnIgnore      # migrate ignore rules
 
 will 
 1. create a git svn clone tracking the svn working copy from the BASE revision and onwards.
-1. migrate all the svn ignore rules to git
+Relevant svn-bridge settings  like svn repo url, path, rev ... are automatically extracted from the svn working copy.
+1. sensible git ignore rules based on svn
+   * migrate svn:ignore properties
+   * ignore .svn/ itself
+   * ignore the svn externals
+   * ignore the paths that git-svn bridge ignores itself
 
 
 
@@ -21,22 +26,32 @@ requirements:
 * python
 
 setup:
-* clone this repo
-* pip install ./
+```
+$ git clone <repo-url> 
+$ cd git-svn
+$ pip install ./
+```
 
-# one-time git svn clone
+# Work flow
 
-a specific revision can be specified
+
+## one-time git svn clone
+
+Create a git-svn bridge staring from a specific revision
 ```
 $ git-svn-init -r 1000
 ```
+see also `$ git-svn-init --help` for even more flags.
 
 ignore specific svn folders in the git svn clone
 ```
 $ git-svn-init --ignore-dir '3rd Party/' 'bigFiles/'
 ```
+Note that this is reflected int he migrated svn ignore rules as well.
 
-# daily git usage
+## daily git usage
+
+use the regular [git svn commands](https://git-scm.com/docs/git-svn)
 
 to fetch the new svn commits into git
 
@@ -49,12 +64,12 @@ rebase and linearize your branche on the SVN tracking branch head.
 $ git svn rebase -l
 ```
 
-rebuild git ignore rules from svn:ignore properties if they got updated.
+rebuild git ignore rules if needed.
 ```
 $ git-svn-migrateSvnIgnore
 ```
 
-To commit each commit of your active git branch to svn
+To commit each commit of your active git branch to svn do
 ```
 $ git svn dcommit
 ```
@@ -64,9 +79,12 @@ git svn is a git gateway drug. It allows devs to work locally in git while the b
 
 * proven functionality for use in a a single branch creating new linear commits.
 
-* However svn merging and svn branching should not be done through the git svn bridge. the git and svn concepts of merging and branching are to different, one *must* perform such actions in svn directly. And then fetch the result into the git repo using `git svn fetch`
+* However svn merging and svn branching should not be done through the git svn bridge. the git and svn concepts of merging and branching are too different, one *must* perform such actions in svn directly. And then fetch the result into the git repo using `git svn fetch`
 
 * do not merge into the branch intended for pushing to svn! Always linearize your commis using the git rebase tools before calling `git svn dcommit`.
+
+# references
+* official [git svn](https://git-scm.com/docs/git-svn) documentation
 
 
 
