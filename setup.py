@@ -1,23 +1,64 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
 """
-    Setup file for git_svn.
-
-    This file was generated with PyScaffold 2.5.8, a tool that easily
-    puts up a scaffold for your new Python project. Learn more under:
-    http://pyscaffold.readthedocs.org/
+pip-svn has some convenience functions to initialize a git-svn bridge inside a svn working copy
 """
-
 import sys
 from setuptools import setup
 
 
-def setup_package():
-    needs_sphinx = {'build_sphinx', 'upload_docs'}.intersection(sys.argv)
-    sphinx = ['sphinx'] if needs_sphinx else []
-    setup(setup_requires=['six', 'pyscaffold>=2.5a0,<2.6a0'] + sphinx,
-          use_pyscaffold=True)
-
-
-if __name__ == "__main__":
-    setup_package()
+setup(
+    name='git-svn',
+    version='1.0',
+    url='http://...',
+    license=None,
+    author='jeroen_devlieger',
+    author_email='jeroen.devlieger@nikon.com',
+    description="__doc__.strip('\n')",
+    packages=[
+        'git_svn',
+    ],
+    entry_points={
+        'console_scripts': [
+            'git-svn-init = git_svn.init:main',
+            'git-svn-migrateSvnIgnore = git_svn.migrateSvnIgnore:main'
+        ],
+    },
+    #include_package_data=True,
+    zip_safe=False,
+    platforms='any',
+    install_requires=[
+        'packaging',
+        'pip',
+        'six'
+    ],
+    #python_requires='>=2.7, !=3.0, !=3.1, !=3.2',
+    classifiers=[
+        # As from https://pypi.python.org/pypi?%3Aaction=list_classifiers
+        #'Development Status :: 1 - Planning',
+        #'Development Status :: 2 - Pre-Alpha',
+        #'Development Status :: 3 - Alpha',
+        'Development Status :: 4 - Beta',
+        #'Development Status :: 5 - Production/Stable',
+        #'Development Status :: 6 - Mature',
+        #'Development Status :: 7 - Inactive',
+        'Programming Language :: Python',
+        #'Programming Language :: Python :: 2',
+        #'Programming Language :: Python :: 2.3',
+        #'Programming Language :: Python :: 2.4',
+        #'Programming Language :: Python :: 2.5',
+        #'Programming Language :: Python :: 2.6',
+        #'Programming Language :: Python :: 2.7',
+        #'Programming Language :: Python :: 3',
+        #'Programming Language :: Python :: 3.0',
+        #'Programming Language :: Python :: 3.1',
+        #'Programming Language :: Python :: 3.2',
+        #'Programming Language :: Python :: 3.3',
+        #'Programming Language :: Python :: 3.4',
+        #'Programming Language :: Python :: 3.5',
+        #'Programming Language :: Python :: 3.6',
+        'Intended Audience :: Developers',
+        #'Intended Audience :: System Administrators',
+        #'License :: OSI Approved :: BSD License',
+        #'Operating System :: OS Independent',
+        #'Topic :: System :: Systems Administration',
+    ]
+)
