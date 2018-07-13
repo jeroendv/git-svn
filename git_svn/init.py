@@ -3,13 +3,13 @@ from __future__ import print_function
 from six.moves import urllib
 
 import sys
-import traceback
 import os
 
 from git_svn.debug import *
 import argparse
 import subprocess
 from xml.etree import ElementTree as ET
+from git_svn.svn import *
 
 
 
@@ -54,20 +54,6 @@ def parse_cli_args():
     return args
 
 
-class ExceptionHandle:
-    """Exception handler for this cli"""
-
-    def __init__(self, debug):
-        self.debug = debug
-
-    def exception_handler(self, exception_type, exception, tb):
-        # format python exception
-        print(str(exception_type.__name__) + " : " + str(exception))
-
-        # print stack trace in debug mode only
-        if (self.debug):
-            traceback.print_tb(tb)
-
 class IgnoreDirs:
     def __init__(self):
         self.ignoreDirs = []
@@ -91,6 +77,13 @@ class IgnoreDirs:
 def main():
     global args
     args = parse_cli_args()
+
+    if not IsSvnWc():
+        raise Exception("cwd is not an svn working copy: " + os.getcwd())
+
+    if IsSvnWcDirty():
+        raise Exception("""svn working copy is dirty.
+please commit or shelve your local changes so they can't be lost before initializing a git-svn bridge.""")
 
     ignoredDirs = IgnoreDirs()
     for p in args.ignore_dir:
@@ -147,6 +140,8 @@ def main():
     # this failure is however harmless and can be ignored
     cli_cmd = ["git", "svn", "fetch", "-r", str(rev)]
     subprocess.call(cli_cmd)
-    subprocess.check_output(["git", "checkout", "--force", "master"])
+
+    cli_cmd = ["git", "svn", "fetch"]
+    subprocess.call(cli_cmd)
 
     sys.exit(0)

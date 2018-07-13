@@ -1,5 +1,26 @@
 from __future__ import print_function
 
+import sys
+import traceback
+
+class ExceptionHandle:
+    """Exception handler for this cli"""
+
+    def __init__(self, debug):
+        self.debug = debug
+
+    def exception_handler(self, exception_type, exception, tb):
+        # format python exception
+        print(str(exception_type.__name__) + " : " + str(exception))
+
+        # print stack trace in debug mode only
+        if (self.debug):
+            traceback.print_tb(tb)
+
+# register default exception handler
+h = ExceptionHandle(True)
+sys.excepthook = h.exception_handler
+
 class DebugLogScopedPush:
     def __init__(self, msg = None):
         self.msg = msg

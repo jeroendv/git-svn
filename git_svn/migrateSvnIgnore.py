@@ -1,9 +1,10 @@
 from __future__ import print_function
 import sys
-import traceback
 import os
 
 from git_svn.debug import *
+from git_svn.git import *
+
 import argparse
 import subprocess
 from xml.etree import ElementTree as ET
@@ -47,22 +48,11 @@ def parse_cli_args():
     return args
 
 
-class ExceptionHandle:
-    """Exception handler for this cli"""
-
-    def __init__(self, debug):
-        self.debug = debug
-
-    def exception_handler(self, exception_type, exception, tb):
-        # format python exception
-        print(str(exception_type.__name__) + " : " + str(exception))
-
-        # print stack trace in debug mode only
-        if (self.debug):
-            traceback.print_tb(tb)
-
 def main():
     args = parse_cli_args()
+
+    if not IsGitSvnRepo():
+        raise Exception("cwd is not a git-svn repo: " + os.getcwd())
 
     with open(".git/info/exclude", 'wt') as f:
         f.write("## Auto generated file!\n")
@@ -109,7 +99,7 @@ def main():
 
         # the .svn/ metadata folder
         f.write("## ignore all '.svn' folders\n")
-        f.write("**/.svn/" + "\n")
+        f.write("/.svn/" + "\n")
         f.write("\n")
 
         # ignore svn externals

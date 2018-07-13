@@ -1,0 +1,240 @@
+from git_svn.debug import *
+import os
+import subprocess
+import urllib.parse
+from xml.etree import ElementTree as ET
+
+def IsSvnWcDirty():
+    try: 
+        text = subprocess.check_output(['svn', 'status', '--quiet'])
+        if len(text.splitlines()) == 0:
+            return False
+        else:
+            return True
+    except:
+        raise
+
+def IsSvnWc():
+    try: 
+        text = subprocess.check_output(['svn', 'info'])
+        return True
+    except subprocess.CalledProcessError as e:
+        return False
+    except:
+        raise Exception("Unknown error")
+
+
+def SvnCountCommits(startRev, endRev):
+    cmd = "svn log --xml -r "+ str(startRev) + ":" + str(endRev)
+    DebugLog.print(cmd)
+    try:
+        xmlStr = subprocess.check_output(cmd).decode()
+    except subprocess.CalledProcessError as e:
+        raise
+    except:
+        raise Exception("Unknown error")
+    
+    xmlNode = ET.fromstring(xmlStr)
+    return len(xmlNode.findall('logentry'))
+
+
+class SvnExternal:
+    """ Single svn:external definition set on a specific folder in a working copy
+    [-r <operativeRev>] <url>[@<pegRev>] <path>
+
+    see also: http://svnbook.red-bean.com/en/1.7/svn.advanced.externals.html
+    """
+    @property
+    def QualifiedUrl(self):
+        """return a qualified url scheme://netloc/path from the external url
+        based on the repoRoot url and the svn external definition url
+        """
+        if self.url.startswith("../"):
+            raise NotImplementedError()
+        elif self.url.startswith("^/../"):
+            raise NotImplementedError()
+        elif self.url.startswith("^/"):
+            # relative to repo root url
+            hostRepoUrl = self.hostRepoUrl
+            # ensure that the hostRepoUrl is a folder, not a file
+            # e.g. end with a folder separator.
+            if not hostRepoUrl.endswith('/'):
+                hostRepoUrl = hostRepoUrl + '/'
+
+            relativeUrl = self.url[2:]
+            return urllib.parse.urljoin(hostRepoUrl, relativeUrl)
+        elif self.url.startswith("//"):
+            # relative to server scheme
+            repourl = urllib.parse.urlparse(self.hostRepoUrl)
+            externalurl = urllib.parse.urlparse(self.url)
+            return urllib.parse.urlunparse((repourl.scheme,
+                                            externalurl.netloc,
+                                            externalurl.path,
+                                            "", "", ""))
+        elif self.url.startswith("/"):
+            # relative to server root url
+            url = urllib.parse.urlparse(self.hostRepoUrl)
+            return urllib.parse.urlunparse((url.scheme,
+                                            url.netloc,
+                                            self.url,
+                                            "", "", ""))
+        else:
+            return self.url
+
+    def __init__(self,  hostRepoUrl, svnWCFolderPath, operativeRev, url, pegRev, path):
+        self.hostRepoUrl = hostRepoUrl
+        self.svnWCFolderPath = svnWCFolderPath
+        self.path = path
+        self.url = url
+        self.pegRev = pegRev
+        self.operativeRev = operativeRev
+
+    def __str__(self):
+        __str = ""
+        if self.operativeRev is not None:
+            __str += "-r " + str(self.operativeRev) + " "
+
+        __str += self.url
+
+        if self.pegRev is not None:
+            __str += '@' + str(self.pegRev)
+
+        __str += " " + self.path
+        return __str
+
+    def parse(hostRepoUrl, svnWCFolderPath, definition):
+        """Create a SvnExternal instance given a single svn:externals definition
+        [-r <operativeRev>] <url>[@<pegRev>] <path>
+        """
+
+        DebugLog.print("parsing: " + str(definition))
+    
+        remainder = definition
+        # parse operative Revision
+        terms = remainder.split(' ')
+        if terms[0] == '-r':
+            operativeRev = terms[1]
+            remainder = " ".join(terms[2:])
+            del terms
+        else:
+            operativeRev = None
+            del terms
+
+        # parse url & peg revision
+        terms = remainder.split(' ')
+        PegSeparatorIdx = terms[0].find('@')
+        if PegSeparatorIdx == -1:
+            url = terms[0]
+            pegRev = None
+
+            remainder = " ".join(terms[1:])
+        else:
+            url = terms[0][:PegSeparatorIdx]
+            pegRev = terms[0][(PegSeparatorIdx+1):]
+
+            remainder = " ".join(terms[1:])
+        del terms
+
+        # parse path
+        assert(len(remainder) > 0)
+        path = remainder
+        if path[0] == "'" and path[-1] == "'":
+            path = path[1:-1]
+
+        return SvnExternal(hostRepoUrl, svnWCFolderPath, operativeRev, url, pegRev, path)
+
+def checkoutSvnExternal(svnExternal):
+    """checkout or update an svn external
+    """
+    WCExternalPath = os.path.join(svnExternal.svnWCFolderPath, svnExternal.path.replace('/',"\\"))
+
+
+
+
+    if os.path.exists(WCExternalPath):
+        # build svn cli arguments
+        args = []
+        if svnExternal.operativeRev:
+            args = args + ['-r', str(svnExternal.operativeRev)]
+            args.append('.')
+
+        # checkout already exists, just update it
+        pwd = os.getcwd()
+        os.chdir(WCExternalPath)
+        try:
+            cmd  = ['svn', 'up'] + args
+            DebugLog.print(str(cmd))
+            subprocess.check_call(cmd)
+        except subprocess.CalledProcessError as e:
+
+            raise e
+        os.chdir(pwd)
+    else:
+        # build svn cli arguments
+        args = []
+        if svnExternal.operativeRev:
+            args.append(['-r', str(svnExternal.operativeRev)])
+        
+        if svnExternal.pegRev:
+            args.append(svnExternal.QualifiedUrl+'@'+str(svnExternal.pegRev))
+        else:
+            args.append(svnExternal.QualifiedUrl)
+
+        # external doesn't yet exists, check it out from the svn repo
+        pwd = os.getcwd()
+        os.chdir(svnExternal.svnWCFolderPath)
+        try:
+            cmd = ['svn', 'checkout'] + args + [svnExternal.path.replace('/',"\\")]
+            DebugLog.print(str(cmd))
+            svnOutput = subprocess.check_call(cmd)
+
+        except subprocess.CalledProcessError as e:
+            DebugLog.print(e.output)
+        
+        os.chdir(pwd)
+
+def GetSvnWCBaseRev():
+    xmlStr = subprocess.check_output("svn info --xml -r BASE")
+    xmlEl = ET.fromstring(xmlStr)
+    return xmlEl.find('entry').get('revision')
+
+def GetSvnRepoUrl():
+    xmlStr = subprocess.check_output(['svn', 'info',  '--xml', '']).decode()
+    xmlEl = ET.fromstring(xmlStr)
+    repoUrl = xmlEl.find('entry/repository/root').text
+    return repoUrl
+
+def GetSvnExternalsFromLocalSvnWc():
+    hostRepoUrl = GetSvnRepoUrl()
+
+    # get all the svn:externals properties recursively
+    cmd = ["svn", "pget", "svn:externals", '-R', './']
+    out = subprocess.check_output(cmd).decode()
+
+    # parse the output line by line fail in case or problems
+    currentPathDef = ""
+    externalDefinitions = []
+    for line in out.splitlines():
+        if len(line) ==0:
+            continue
+
+        if " - " in line:
+            (key, sep, value) = line.partition(' - ')
+            assert sep == ' - '
+
+            # key is a new pathDef
+            currentPathDef = key
+            assert key[0] != '/'
+            currentPathDef = currentPathDef
+
+            # value if first externalDef for pathDef
+            externaldef = SvnExternal.parse(hostRepoUrl, currentPathDef,value)
+            externalDefinitions.append(externaldef)
+            continue
+        
+        # current line must be a externalDef
+        externaldef = SvnExternal.parse(hostRepoUrl, currentPathDef, line)
+        externalDefinitions.append(externaldef)
+    
+    return externalDefinitions
+	
