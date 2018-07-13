@@ -1,4 +1,9 @@
-a set of convenience functions for  [git svn clone](https://git-scm.com/docs/git-svn) for the specific usecase of creating a git-svn bridge *inside* an existing svn checkout.
+a set of convenience functions for  [git svn clone](https://git-scm.com/docs/git-svn)
+for the specific usecase of creating a git-svn bridge *inside* an existing svn checkout.
+
+Typical use-case is a situation where a regular `git svn clone` would not suffice.
+Due to svn-externals, scripts that assumes a svn working copy to be present,
+svn:keywords or SubWCRev usages, ...
 
 ```
 $ svn update                    # ensure clean svn working copy
@@ -60,9 +65,11 @@ $ git svn fetch
 ```
 
 rebase and linearize your branche on the SVN tracking branch head.
+([official Info](https://git-scm.com/docs/git-svn#_rebase_vs_pull_merge))
 ```
 $ git svn rebase -l
 ```
+
 
 rebuild git ignore rules if needed.
 ```
@@ -74,6 +81,28 @@ To commit each commit of your active git branch to svn do
 $ git svn dcommit
 ```
 
+
+## periodiccaly
+ocasionally the svn working copy must be updated.
+* perform a merge. (git-svn bridge doesn't do this!)
+* update the svn-externals (git-svn bridge has no support for externals)
+* ...
+
+First make sure that your git working copy is clean, e.g. no local changes.
+This way all work is backed up and any mistake can easily be reverted.
+
+figure out the svn commit that is currently being tracked by the git-bridge working copy
+```
+$ git svn info
+```
+
+then update svn to said revision and revert all conflicts that may happen.
+```
+$ svn up -r XXXXXX
+$ svn revert -R ./
+```
+At the and both the git and svn working copy should be clean and clear of any local changes.
+
 # cave-ats
 git svn is a git gateway drug. It allows devs to work locally in git while the backend is a svn repo. However it does have limitations.
 
@@ -84,8 +113,11 @@ git svn is a git gateway drug. It allows devs to work locally in git while the b
 * do not merge into the branch intended for pushing to svn! Always linearize your commis using the git rebase tools before calling `git svn dcommit`.
 
 # references
-* official [git svn](https://git-scm.com/docs/git-svn) documentation
-
+official git-svn documentation:
+* [cli reference](https://git-scm.com/docs/git-svn)
+* [additional docs](https://git-scm.com/docs/git-svn#_rebase_vs_pull_merge)))
+* [caveats](https://git-scm.com/docs/git-svn#_caveats)
+* [bugs](https://git-scm.com/docs/git-svn#_bugs)
 
 
 
