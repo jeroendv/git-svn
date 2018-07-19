@@ -6,6 +6,10 @@ import argparse
 from git_svn.git import *
 from git_svn.svn import *
 
+if sys.version_info < (3,5):
+    print("Script is being run with a too old version of Python. Needs 3.5.")
+    sys.exit(0)
+
 args = []
 
 def parse_cli_args():
