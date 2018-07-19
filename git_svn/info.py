@@ -59,32 +59,32 @@ def main():
     if svnBaseRev == svnGitBranchPoint_svnRev and gitBranchAheadCount == 0:
         print("* rev {} (svn{}, git{})".format(svnBaseRev, svnDirtyFlag, gitDirtyFlag))
     elif svnBaseRev == svnGitBranchPoint_svnRev and gitBranchAheadCount > 0:
-        print("* rev {} (svn{})".format(svnBaseRev, svnDirtyFlag, gitDirtyFlag))
-        print("  \\")
         print("  * git +{}{}".format(gitBranchAheadCount, gitDirtyFlag))
+        print(" /")
+        print("* rev {} (svn{})".format(svnBaseRev, svnDirtyFlag, gitDirtyFlag))
     elif svnBaseRev < svnGitBranchPoint_svnRev and gitBranchAheadCount == 0:
         aheadCount = SvnCountCommits(svnBaseRev, svnGitBranchPoint_svnRev)
-        print("* rev {} (svn{})".format(svnBaseRev, svnDirtyFlag))
-        print("|")
         print("* rev {} (git +{}{})".format(svnGitBranchPoint_svnRev, aheadCount, gitDirtyFlag))
+        print("|")
+        print("* rev {} (svn{})".format(svnBaseRev, svnDirtyFlag))
     elif svnBaseRev < svnGitBranchPoint_svnRev and gitBranchAheadCount > 0:
         aheadCount = SvnCountCommits(svnBaseRev, svnGitBranchPoint_svnRev)
-        print("* rev {} (svn{})".format(svnBaseRev, svnDirtyFlag))
-        print("|")
-        print("* rev {} (+{})".format(svnGitBranchPoint_svnRev, aheadCount))
-        print("  \\")
         print(" * (git +{}{})".format(gitBranchAheadCount, gitDirtyFlag))
+        print(" /")
+        print("* rev {} (+{})".format(svnGitBranchPoint_svnRev, aheadCount))
+        print("|")
+        print("* rev {} (svn{})".format(svnBaseRev, svnDirtyFlag))
     elif  svnGitBranchPoint_svnRev < svnBaseRev and gitBranchAheadCount == 0:
         aheadCount = SvnCountCommits(svnGitBranchPoint_svnRev, svnBaseRev)
-        print("* rev {} (git{})".format(svnGitBranchPoint_svnRev, gitDirtyFlag))
-        print("|")
         print("* rev {} (svn +{}{})".format(svnBaseRev, aheadCount, svnDirtyFlag))
+        print("|")
+        print("* rev {} (git{})".format(svnGitBranchPoint_svnRev, gitDirtyFlag))
     elif  svnGitBranchPoint_svnRev < svnBaseRev and gitBranchAheadCount > 0:
         aheadCount = SvnCountCommits(svnGitBranchPoint_svnRev, svnBaseRev)
-        print("* rev {} ".format(svnGitBranchPoint_svnRev))
-        print("|\\")
-        print("| * (git +{}{})".format(gitBranchAheadCount, gitDirtyFlag))
         print("* rev {} (svn +{}{})".format(svnBaseRev, aheadCount, svnDirtyFlag))
+        print("| * (git +{}{})".format(gitBranchAheadCount, gitDirtyFlag))
+        print("|/")
+        print("* rev {} ".format(svnGitBranchPoint_svnRev))
     else:
         raise Exception("Impossible state!")
 
