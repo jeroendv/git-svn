@@ -76,32 +76,40 @@ rebuild git ignore rules if needed.
 $ git-svn-migrateSvnIgnore
 ```
 
+update the svn externals if needed.
+```
+$ git-svn-checkoutSvnExternals
+```
+
 To commit each commit of your active git branch to svn do
 ```
 $ git svn dcommit
 ```
+## check svnWC and gitWC 
 
-
-## periodiccaly
-ocasionally the svn working copy must be updated.
-* perform a merge. (git-svn bridge doesn't do this!)
-* update the svn-externals (git-svn bridge has no support for externals)
-* ...
-
-First make sure that your git working copy is clean, e.g. no local changes.
-This way all work is backed up and any mistake can easily be reverted.
-
-figure out the svn commit that is currently being tracked by the git-bridge working copy
+Simplified log graph of the git working copy augmented with svn working copy info.
 ```
-$ git svn info
+$ git-svn-info
+* rev 68113 (svn +112 (*))
+| * (git +1)
+|/
+* rev 67132
+```
+Indicating:
+* the current git working copy is branched from svn rev 67132 and is 1 commit ahead
+* while the svn working copy 112 commits ahead of this branching point
+* the git working copy is clean and consequently the svn working copy is dirty (e.g. '*')
+
+ 
+## sync svn to git WC
+if the `git-svn-info` indicates that the svn BASE revision is behind the git branching point
+then the svn working copy can easily be updated
+
+```
+$ git-svn-syncSvnWithGit
 ```
 
-then update svn to said revision and revert all conflicts that may happen.
-```
-$ svn up -r XXXXXX
-$ svn revert -R ./
-```
-At the and both the git and svn working copy should be clean and clear of any local changes.
+Note that this requires a clean git working copy to prevent loss of changes.
 
 # cave-ats
 git svn is a git gateway drug. It allows devs to work locally in git while the backend is a svn repo. However it does have limitations.
