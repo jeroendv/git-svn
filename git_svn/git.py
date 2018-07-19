@@ -32,7 +32,7 @@ def IsGitSvnRepo():
 
 def GetCurrentGitBranch():
     try: 
-        output = subprocess.check_output("git rev-parse --abbrev-ref @").decode()
+        output = subprocess.check_output(['git', 'rev-parse', '--abbrev-ref', '@']).decode()
         output = output.splitlines()
         assert len(output) == 1
         branchName = output[0]
@@ -44,7 +44,7 @@ def GetCurrentGitBranch():
 
 def GitCountCommits(start, end):
     try: 
-        output = subprocess.check_output("git log --oneline "+ start + ".." + end).decode()
+        output = subprocess.check_output(['git', 'log' ,'--oneline', start + ".." + end]).decode()
         return len(output.splitlines())
     except subprocess.CalledProcessError as e:
         raise

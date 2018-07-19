@@ -25,8 +25,8 @@ def IsSvnWc():
 
 
 def SvnCountCommits(startRev, endRev):
-    cmd = "svn log --xml -r "+ str(startRev) + ":" + str(endRev)
-    DebugLog.print(cmd)
+    cmd = ["svn", "log", "--xml", "-r", str(startRev) + ":" + str(endRev)]
+    DebugLog.print(str(cmd))
     try:
         xmlStr = subprocess.check_output(cmd).decode()
     except subprocess.CalledProcessError as e:
@@ -194,7 +194,7 @@ def checkoutSvnExternal(svnExternal):
         os.chdir(pwd)
 
 def GetSvnWCBaseRev():
-    xmlStr = subprocess.check_output("svn info --xml -r BASE")
+    xmlStr = subprocess.check_output(['svn', 'info' ,'--xml', '-r',  'BASE']).decode()
     xmlEl = ET.fromstring(xmlStr)
     return xmlEl.find('entry').get('revision')
 
