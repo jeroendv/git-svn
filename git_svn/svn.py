@@ -1,4 +1,4 @@
-from git_svn.debug import *
+from git_svn.debug import DebugLog
 import os
 import subprocess
 import urllib.parse
@@ -16,24 +16,16 @@ def IsSvnWcDirty():
 
 def IsSvnWc():
     try: 
-        text = subprocess.check_output(['svn', 'info'])
+        subprocess.check_output(['svn', 'info'])
         return True
-    except subprocess.CalledProcessError as e:
+    except subprocess.CalledProcessError:
         return False
-    except:
-        raise Exception("Unknown error")
 
 
 def SvnCountCommits(startRev, endRev):
     cmd = ["svn", "log", "--xml", "-r", str(startRev) + ":" + str(endRev)]
     DebugLog.print(str(cmd))
-    try:
-        xmlStr = subprocess.check_output(cmd).decode()
-    except subprocess.CalledProcessError as e:
-        raise
-    except:
-        raise Exception("Unknown error")
-    
+    xmlStr = subprocess.check_output(cmd).decode()   
     xmlNode = ET.fromstring(xmlStr)
     return len(xmlNode.findall('logentry'))
 
@@ -102,6 +94,7 @@ class SvnExternal:
         __str += " " + self.path
         return __str
 
+    @staticmethod
     def parse(hostRepoUrl, svnWCFolderPath, definition):
         """Create a SvnExternal instance given a single svn:externals definition
         [-r <operativeRev>] <url>[@<pegRev>] <path>

@@ -18,8 +18,7 @@ class ExceptionHandle:
             traceback.print_tb(tb)
 
 # register default exception handler
-h = ExceptionHandle(True)
-sys.excepthook = h.exception_handler
+sys.excepthook = ExceptionHandle(True).exception_handler
 
 class DebugLogScopedPush:
     def __init__(self, msg = None):

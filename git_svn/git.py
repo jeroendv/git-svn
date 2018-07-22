@@ -1,55 +1,40 @@
 import subprocess
-from git_svn.debug import *
-from git_svn.svn import *
+from git_svn.debug import DebugLog
+from git_svn import svn
 
 def IsGitWc():
     try: 
         subprocess.check_output(['git', 'status'])
         return True
-    except subprocess.CalledProcessError as e:
+    except subprocess.CalledProcessError:
         return False
-    except:
-        raise Exception("Unknown error")
+
 
 def IsGitWcDirty():
-    try: 
-        text = subprocess.check_output(['git', 'status', "--short", '--untracked-files=no'])
-        if len(text.splitlines()) == 0:
-            return False
-        else:
-            return True
-    except:
-        raise
+    text = subprocess.check_output(['git', 'status', "--short", '--untracked-files=no'])
+    if len(text.splitlines()) == 0:
+        return False
+    else:
+        return True
 
 def IsGitSvnRepo():
     try: 
         subprocess.check_output(['git','svn', 'info'])
         return True
-    except subprocess.CalledProcessError as e:
+    except subprocess.CalledProcessError:
         return False
-    except:
-        raise Exception("Unknown error")
+
 
 def GetCurrentGitBranch():
-    try: 
-        output = subprocess.check_output(['git', 'rev-parse', '--abbrev-ref', '@']).decode()
-        output = output.splitlines()
-        assert len(output) == 1
-        branchName = output[0]
-        return branchName
-    except subprocess.CalledProcessError as e:
-        raise
-    except:
-        raise Exception("Unknown error")
+    output = subprocess.check_output(['git', 'rev-parse', '--abbrev-ref', '@']).decode()
+    output = output.splitlines()
+    assert len(output) == 1
+    branchName = output[0]
+    return branchName
 
 def GitCountCommits(start, end):
-    try: 
-        output = subprocess.check_output(['git', 'log' ,'--oneline', start + ".." + end]).decode()
-        return len(output.splitlines())
-    except subprocess.CalledProcessError as e:
-        raise
-    except:
-        raise Exception("Unknown error")
+    output = subprocess.check_output(['git', 'log' ,'--oneline', start + ".." + end]).decode()
+    return len(output.splitlines())
 
 def GetGitSvnBranchPointRev():
     # find the git commit where HEAD branched of from the SVN branch
@@ -111,7 +96,7 @@ def GetSvnExternalsFromGitSvnBridge():
         svnWCFolderPath = currentPathDef
         svnWCFolderPath = '.'+ svnWCFolderPath
         svnWCFolderPath.replace("/", "\\")
-        externaldef = SvnExternal.parse(hostRepoUrl, svnWCFolderPath , externaldefString)
+        externaldef = svn.SvnExternal.parse(hostRepoUrl, svnWCFolderPath , externaldefString)
         externalDefinitions.append(externaldef)
     
     return externalDefinitions

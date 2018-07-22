@@ -5,11 +5,13 @@ from six.moves import urllib
 import sys
 import os
 
-from git_svn.debug import *
+from git_svn.debug import DebugLog,DebugLogScopedPush
+from git_svn.debug import ExceptionHandle
+
 import argparse
 import subprocess
 from xml.etree import ElementTree as ET
-from git_svn.svn import *
+from  git_svn import svn
 
 if sys.version_info < (3,5):
     print("Script is being run with a too old version of Python. Needs 3.5.")
@@ -80,10 +82,10 @@ def main():
     global args
     args = parse_cli_args()
 
-    if not IsSvnWc():
+    if not svn.IsSvnWc():
         raise Exception("cwd is not an svn working copy: " + os.getcwd())
 
-    if IsSvnWcDirty():
+    if svn.IsSvnWcDirty():
         raise Exception("""svn working copy is dirty.
 please commit or shelve your local changes so they can't be lost before initializing a git-svn bridge.""")
 
