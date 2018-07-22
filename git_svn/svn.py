@@ -29,6 +29,9 @@ def SvnCountCommits(startRev, endRev):
     xmlNode = ET.fromstring(xmlStr)
     return len(xmlNode.findall('logentry'))
 
+def checkout(rev_int):
+    subprocess.check_call(['svn', 'update','-r', str(rev_int)])
+
 
 class SvnExternal:
     """ Single svn:external definition set on a specific folder in a working copy

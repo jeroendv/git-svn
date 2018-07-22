@@ -36,6 +36,19 @@ def GitCountCommits(start, end):
     output = subprocess.check_output(['git', 'log' ,'--oneline', start + ".." + end]).decode()
     return len(output.splitlines())
 
+
+def GetAssociatedGitShaForSvnRev(rev_int):
+    output = subprocess.check_output(['git', 'svn', 'find-rev', 'r'+str(rev_int)])
+    output = output.splitlines()
+    assert len(output) == 1
+    commitSha = output[0]
+    return commitSha
+
+def checkout(commit_sha):
+    subprocess.check_output(['git', 'checkout', commit_sha])
+
+    
+
 def GetGitSvnBranchPointRev():
     # find the git commit where HEAD branched of from the SVN branch
     cmd =  ['git', 'log', '--grep=^git-svn-id:', '--first-parent', '-1', "--format=%H"]

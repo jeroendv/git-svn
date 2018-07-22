@@ -1,12 +1,12 @@
 from __future__ import print_function
 import sys
 import os
-from git_svn.debug import *
+from git_svn.debug import DebugLog,DebugLogScopedPush
+from git_svn.debug import ExceptionHandle
 import argparse
 import subprocess
 from xml.etree import ElementTree as ET
-from git_svn.git import *
-from git_svn.svn import *
+from git_svn import svn,git
 
 if sys.version_info < (3,5):
     print("Script is being run with a too old version of Python. Needs 3.5.")
@@ -59,7 +59,7 @@ def DeriveHistoricSvnExternals(historicDateRevStr, svnExternal):
     revStr = infoXml.find('entry/commit').get('revision')
 
     # return copy of svn External with overrules operative and peg revision
-    return SvnExternal(svnExternal.hostRepoUrl,
+    return svn.SvnExternal(svnExternal.hostRepoUrl,
                     svnExternal.svnWCFolderPath,
                     revStr,
                     svnExternal.url,
@@ -80,14 +80,14 @@ def main():
     if not args.revision.startswith('{') or not args.revision.endswith('}'):
         raise Exception("invalid date revision : " + args.revision)
 
-    if IsGitWc() and IsGitWcDirty():
+    if git.IsGitWc() and git.IsGitWcDirty():
         raise Exception("""git working copy is dirty.
 please first commit or stash your local changes so they can't be lost.""")
 
-    if not IsSvnWc():
+    if not svn.IsSvnWc():
         raise Exception("cwd is not an svn working copy: " + os.getcwd())
 
-    if IsSvnWcDirty():
+    if svn.IsSvnWcDirty():
         raise Exception("""svn working copy is dirty.
 please first commit or shelve your local changes so they can't be lost.""")
 
@@ -103,11 +103,19 @@ please first commit or shelve your local changes so they can't be lost.""")
         sys.exit(0)
 
     # update WC
-    subprocess.check_call(['svn', 'update','-r', rev])
+    if git.IsGitSvnRepo():
+        commit_sha = git.GetAssociatedGitShaForSvnRev(int(rev))
+        git.checkout(commit_sha)   
+    else:
+        svn.checkout(int(rev))
 
     # do historic checkout for each of the externals
     # obtains externals for current WC
-    externalDefinitions = GetSvnExternalsFromLocalSvnWc() 
+    externalDefinitions = []
+    if git.IsGitSvnRepo():
+        externalDefinitions = git.GetSvnExternalsFromGitSvnBridge()
+    else:
+        externalDefinitions = svn.GetSvnExternalsFromLocalSvnWc()
     print("#externals: " + str(len(externalDefinitions)))
 
     # generate the list of historic externals
@@ -121,6 +129,6 @@ please first commit or shelve your local changes so they can't be lost.""")
     # checkout/update the historic externals in the SVN WC
     for externalDef in historicExternals:
         print(externalDef.svnWCFolderPath + " " + str(externalDef))
-        checkoutSvnExternal(externalDef)               
+        svn.checkoutSvnExternal(externalDef)               
 
     sys.exit(0)
