@@ -182,12 +182,10 @@ def checkoutSvnExternal(svnExternal):
         try:
             cmd = ['svn', 'checkout'] + args + [svnExternal.path.replace('/',"\\")]
             DebugLog.print(str(cmd))
-            svnOutput = subprocess.check_call(cmd)
+            subprocess.check_call(cmd)
 
-        except subprocess.CalledProcessError as e:
-            DebugLog.print(e.output)
-        
-        os.chdir(pwd)
+        finally:
+            os.chdir(pwd)
 
 def GetSvnWCBaseRev():
     xmlStr = subprocess.check_output(['svn', 'info' ,'--xml', '-r',  'BASE']).decode()
