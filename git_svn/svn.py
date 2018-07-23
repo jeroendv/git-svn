@@ -163,10 +163,8 @@ def checkoutSvnExternal(svnExternal):
             cmd  = ['svn', 'up'] + args
             DebugLog.print(str(cmd))
             subprocess.check_call(cmd)
-        except subprocess.CalledProcessError as e:
-
-            raise e
-        os.chdir(pwd)
+        finally:
+            os.chdir(pwd)
     else:
         # build svn cli arguments
         args = []
