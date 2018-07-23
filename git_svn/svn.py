@@ -4,9 +4,9 @@ import subprocess
 import urllib.parse
 from xml.etree import ElementTree as ET
 
-def IsSvnWcDirty():
+def IsSvnWcDirty(path = "."):
     try: 
-        text = subprocess.check_output(['svn', 'status', '--quiet'])
+        text = subprocess.check_output(['svn', 'status', '--quiet', path])
         if len(text.splitlines()) == 0:
             return False
         else:
@@ -14,9 +14,9 @@ def IsSvnWcDirty():
     except:
         raise
 
-def IsSvnWc():
+def IsSvnWc(path = "."):
     try: 
-        subprocess.check_output(['svn', 'info'])
+        subprocess.check_output(['svn', 'info', path])
         return True
     except subprocess.CalledProcessError:
         return False
