@@ -38,7 +38,7 @@ def GitCountCommits(start, end):
 
 
 def GetAssociatedGitShaForSvnRev(rev_int):
-    output = subprocess.check_output(['git', 'svn', 'find-rev', 'r'+str(rev_int)])
+    output = subprocess.check_output(['git', 'svn', 'find-rev', 'r'+str(rev_int)]).decode()
     output = output.splitlines()
     assert len(output) == 1
     commitSha = output[0]
