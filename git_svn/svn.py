@@ -150,9 +150,11 @@ def checkoutSvnExternal(svnExternal):
     if os.path.exists(WCExternalPath):
         # build svn cli arguments
         args = []
-        if svnExternal.operativeRev:
-            args = args + ['-r', str(svnExternal.operativeRev)]
-            args.append('.')
+        if svnExternal.pegRev:
+            assert (svnExternal.operativeRev is None) or (svnExternal.operativeRev == svnExternal.pegRev)
+            args += ['-r', str(svnExternal.pegRev)]
+            args += ['.']
+
 
         # checkout already exists, just update it
         pwd = os.getcwd()
