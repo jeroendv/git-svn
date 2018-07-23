@@ -3,6 +3,7 @@ import os
 import subprocess
 import urllib.parse
 from xml.etree import ElementTree as ET
+import shutil
 
 def IsSvnWcDirty(path = "."):
     try: 
@@ -139,12 +140,39 @@ class SvnExternal:
 
         return SvnExternal(hostRepoUrl, svnWCFolderPath, operativeRev, url, pegRev, path)
 
+def GetQualifiedUrlForFolder(path):
+    xmlStr = subprocess.check_output(['svn', 'info', '--xml', path]).decode()
+    xmlRootNode = ET.fromstring(xmlStr)
+    return xmlRootNode.find('entry/url').text
+
+
 def checkoutSvnExternal(svnExternal):
     """checkout or update an svn external
     """
     WCExternalPath = os.path.join(svnExternal.svnWCFolderPath, svnExternal.path.replace('/',"\\"))
 
 
+    # check for existing svn external pointing to wrong url
+    # in which case the external needs to be deleted and a clean checkout is needed
+    # instead of only updating the existing svnExternal to the proper revision
+    if os.path.exists(WCExternalPath):
+        if not IsSvnWc():
+            raise Exception("Terminating: svn external expected, but no svn WC is found:" + WCExternalPath)
+
+        # check if path is correct
+        if IsSvnWcDirty():
+            raise Exception("Terminating: dirty svn external can't be removed : " + WCExternalPath)
+
+        existingExternalQualifiedUrl = GetQualifiedUrlForFolder(WCExternalPath)
+        forceCleanCheckout = (svnExternal.QualifiedUrl != existingExternalQualifiedUrl)
+        forceCleanCheckout |= ((svnExternal.operativeRev is not None) and (svnExternal.pegRev != svnExternal.operativeRev))
+        if forceCleanCheckout:
+            DebugLog.print('removing {path} existing external points to {oldUrl} but new external points to {newUrl}'.format(
+                path=WCExternalPath,
+                oldUrl=existingExternalQualifiedUrl,
+                newUrl=svnExternal.QualifiedUrl
+            ))
+            shutil.rmtree(WCExternalPath)
 
 
     if os.path.exists(WCExternalPath):
