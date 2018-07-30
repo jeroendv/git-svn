@@ -177,18 +177,18 @@ def checkoutSvnExternal(svnExternal):
 
     if os.path.isdir(WCExternalPath):
         # build svn cli arguments
-        args = []
+        cmd  = ['svn', 'up'] 
         if svnExternal.pegRev:
             assert (svnExternal.operativeRev is None) or (svnExternal.operativeRev == svnExternal.pegRev)
-            args += ['-r', str(svnExternal.pegRev)]
-            args += ['.']
+            cmd += ['-r', str(svnExternal.pegRev)]
+        
+        cmd += ['.']
 
 
         # checkout already exists, just update it
         pwd = os.getcwd()
         os.chdir(WCExternalPath)
         try:
-            cmd  = ['svn', 'up'] + args
             DebugLog.print(str(cmd))
             subprocess.check_call(cmd)
         finally:
@@ -215,20 +215,20 @@ def checkoutSvnExternal(svnExternal):
     else:
         assert not os.path.exists(WCExternalPath)
         # build svn cli arguments
-        args = []
+        cmd = ['svn', 'checkout']
         if svnExternal.operativeRev:
-            args.append(['-r', str(svnExternal.operativeRev)])
+            cmd += ['-r', str(svnExternal.operativeRev)]
         
         if svnExternal.pegRev:
-            args.append(svnExternal.QualifiedUrl+'@'+str(svnExternal.pegRev))
+            cmd += [svnExternal.QualifiedUrl+'@'+str(svnExternal.pegRev)]
         else:
-            args.append(svnExternal.QualifiedUrl)
+            cmd += [svnExternal.QualifiedUrl]
 
+        cmd += svnExternal.path.replace('/', os.sep)
         # external doesn't yet exists, check it out from the svn repo
         pwd = os.getcwd()
         os.chdir(svnExternal.svnWCFolderPath)
         try:
-            cmd = ['svn', 'checkout'] + args + [svnExternal.path.replace('/',"\\")]
             DebugLog.print(str(cmd))
             subprocess.check_call(cmd)
 
