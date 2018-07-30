@@ -149,7 +149,7 @@ def GetQualifiedUrlForFolder(path):
 def checkoutSvnExternal(svnExternal):
     """checkout or update an svn external
     """
-    WCExternalPath = os.path.join(svnExternal.svnWCFolderPath, svnExternal.path.replace('/',"\\"))
+    WCExternalPath = os.path.join(svnExternal.svnWCFolderPath, svnExternal.path.replace('/', os.sep))
 
 
     # check for existing svn external pointing to wrong url

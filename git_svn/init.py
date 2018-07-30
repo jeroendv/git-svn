@@ -69,7 +69,7 @@ class IgnoreDirs:
         if not os.path.isdir(path):
             raise Exception("Path '%s' is not a folder" % path)
 
-        path = path.replace('\\', '/')
+        path = path.replace(os.sep, '/')
         if path[-1] != '/':
             path += '/'
         self.ignoreDirs.append(path)

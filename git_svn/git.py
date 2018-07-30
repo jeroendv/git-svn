@@ -1,6 +1,7 @@
 import subprocess
 from git_svn.debug import DebugLog
 from git_svn import svn
+import os
 
 def IsGitWc():
     try: 
@@ -108,7 +109,7 @@ def GetSvnExternalsFromGitSvnBridge():
         # derive windows  path from currentPathDef relative to repo root
         svnWCFolderPath = currentPathDef
         svnWCFolderPath = '.'+ svnWCFolderPath
-        svnWCFolderPath.replace("/", "\\")
+        svnWCFolderPath.replace("/", os.sep)
         externaldef = svn.SvnExternal.parse(hostRepoUrl, svnWCFolderPath , externaldefString)
         externalDefinitions.append(externaldef)
     
