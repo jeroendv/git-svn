@@ -227,6 +227,7 @@ def checkoutSvnExternal(svnExternal):
         cmd += svnExternal.path.replace('/', os.sep)
         # external doesn't yet exists, check it out from the svn repo
         pwd = os.getcwd()
+        os.makedirs(svnExternal.svnWCFolderPath, exist_ok=True)
         os.chdir(svnExternal.svnWCFolderPath)
         try:
             DebugLog.print(str(cmd))
