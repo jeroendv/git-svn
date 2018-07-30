@@ -4,6 +4,8 @@ pip-svn has some convenience functions to initialize a git-svn bridge inside a s
 import sys
 from setuptools import setup
 
+if sys.version_info < (3,5):
+    sys.exit('Sorry, Python < 2.7 is not supported')
 
 setup(
     name='git-svn',
