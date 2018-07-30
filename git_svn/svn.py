@@ -175,7 +175,7 @@ def checkoutSvnExternal(svnExternal):
             shutil.rmtree(WCExternalPath)
 
 
-    if os.path.exists(WCExternalPath):
+    if os.path.isdir(WCExternalPath):
         # build svn cli arguments
         args = []
         if svnExternal.pegRev:
@@ -193,7 +193,27 @@ def checkoutSvnExternal(svnExternal):
             subprocess.check_call(cmd)
         finally:
             os.chdir(pwd)
+    elif os.path.isfile(WCExternalPath):
+        # build svn cli arguments
+        cmd = ['svn', 'up']
+        if svnExternal.pegRev:
+            assert (svnExternal.operativeRev is None) or (svnExternal.operativeRev == svnExternal.pegRev)
+            cmd += ['-r', str(svnExternal.pegRev)]
+        
+        cmd += [os.path.basename(WCExternalPath)]
+
+
+        # checkout already exists, just update it
+        pwd = os.getcwd()
+        os.chdir(os.path.dirname(WCExternalPath))
+        try:
+            DebugLog.print(str(cmd))
+            subprocess.check_call(cmd)
+        finally:
+            os.chdir(pwd)
+
     else:
+        assert not os.path.exists(WCExternalPath)
         # build svn cli arguments
         args = []
         if svnExternal.operativeRev:
