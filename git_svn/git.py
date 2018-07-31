@@ -19,10 +19,15 @@ def IsGitWcDirty():
         return True
 
 def IsGitSvnRepo():
+    if not IsGitWc(): 
+        return False
+        
     try: 
-        subprocess.check_output(['git','svn', 'info'])
+        subprocess.check_output(['git','config', '--local', '--get-regexp', 'svn-remote\..*\.url'])
         return True
-    except subprocess.CalledProcessError:
+
+    except subprocess.CalledProcessError as e:
+        assert e.returncode == 1 # a return code other then 1 means there is a bug!
         return False
 
 
