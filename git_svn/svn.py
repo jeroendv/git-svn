@@ -160,7 +160,7 @@ def checkoutSvnExternal(svnExternal):
             raise Exception("Terminating: svn external expected, but no svn WC is found:" + WCExternalPath)
 
         # check if path is correct
-        if IsSvnWcDirty():
+        if IsSvnWcDirty(WCExternalPath):
             raise Exception("Terminating: dirty svn external can't be removed : " + WCExternalPath)
 
         existingExternalQualifiedUrl = GetQualifiedUrlForFolder(WCExternalPath)
