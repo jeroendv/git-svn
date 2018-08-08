@@ -4,7 +4,6 @@ import subprocess
 import urllib.parse
 from xml.etree import ElementTree as ET
 import shutil
-from git_svn import logFunctionScope
 from git_svn import timeit
 
 @timeit
@@ -152,7 +151,7 @@ def GetQualifiedUrlForFolder(path):
 
 
 
-@logFunctionScope
+@timeit
 def checkoutSvnExternal(svnExternal):
     """checkout or update an svn external
     """

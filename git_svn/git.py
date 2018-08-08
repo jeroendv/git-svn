@@ -2,7 +2,6 @@ import subprocess
 from git_svn.debug import DebugLog
 from git_svn import timeit
 from git_svn import svn
-from git_svn import logFunctionScope
 import os
 
 @timeit
