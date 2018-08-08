@@ -161,15 +161,18 @@ def checkoutSvnExternal(svnExternal):
         if not IsSvnWc(WCExternalPath):
             raise Exception("Terminating: svn external expected, but no svn WC is found:" + WCExternalPath)
 
-        # check if path is correct
+        # svn wc may not be dirty, since this action would result in lost data!
         if IsSvnWcDirty(WCExternalPath):
             raise Exception("Terminating: dirty svn external can't be removed : " + WCExternalPath)
 
+        # if the working copy is a checkout of the wrong svn url then delete it.
+        # e.g. the external has updated and  new checkout is needed
         existingExternalQualifiedUrl = GetQualifiedUrlForFolder(WCExternalPath)
         forceCleanCheckout = (svnExternal.QualifiedUrl != existingExternalQualifiedUrl)
+        # if the pegRev and operatative revision are set but not equal, then lets be conservative and do a clean checkout.
         forceCleanCheckout |= ((svnExternal.operativeRev is not None) and (svnExternal.pegRev != svnExternal.operativeRev))
         if forceCleanCheckout:
-            DebugLog.print('removing {path} existing external points to {oldUrl} but new external points to {newUrl}'.format(
+            DebugLog.print('removing {path}!\n existing external points to {oldUrl} but new external points to {newUrl}. so a new checkout is needed.'.format(
                 path=WCExternalPath,
                 oldUrl=existingExternalQualifiedUrl,
                 newUrl=svnExternal.QualifiedUrl
