@@ -182,7 +182,7 @@ def checkoutSvnExternal(svnExternal):
 
     if os.path.isdir(WCExternalPath):
         # build svn cli arguments
-        cmd  = ['svn', 'up'] 
+        cmd  = ['svn', 'up', '-q'] 
         if svnExternal.pegRev:
             assert (svnExternal.operativeRev is None) or (svnExternal.operativeRev == svnExternal.pegRev)
             cmd += ['-r', str(svnExternal.pegRev)]
@@ -195,12 +195,13 @@ def checkoutSvnExternal(svnExternal):
         os.chdir(WCExternalPath)
         try:
             DebugLog.print(str(cmd))
-            subprocess.check_call(cmd)
+            svnOutput = subprocess.check_output(cmd).decode()
+            DebugLog.print(svnOutput)
         finally:
             os.chdir(pwd)
     elif os.path.isfile(WCExternalPath):
         # build svn cli arguments
-        cmd = ['svn', 'up']
+        cmd = ['svn', 'up', '-q']
         if svnExternal.pegRev:
             assert (svnExternal.operativeRev is None) or (svnExternal.operativeRev == svnExternal.pegRev)
             cmd += ['-r', str(svnExternal.pegRev)]
@@ -213,14 +214,15 @@ def checkoutSvnExternal(svnExternal):
         os.chdir(os.path.dirname(WCExternalPath))
         try:
             DebugLog.print(str(cmd))
-            subprocess.check_call(cmd)
+            svnOutput = subprocess.check_output(cmd).decode()
+            DebugLog.print(svnOutput)
         finally:
             os.chdir(pwd)
 
     else:
         assert not os.path.exists(WCExternalPath)
         # build svn cli arguments
-        cmd = ['svn', 'checkout']
+        cmd = ['svn', 'checkout', '-q']
         if svnExternal.operativeRev:
             cmd += ['-r', str(svnExternal.operativeRev)]
         
@@ -237,8 +239,8 @@ def checkoutSvnExternal(svnExternal):
         os.chdir(svnExternal.svnWCFolderPath)
         try:
             DebugLog.print(str(cmd))
-            subprocess.check_call(cmd)
-
+            svnOutput = subprocess.check_output(cmd).decode()
+            DebugLog.print(svnOutput)
         finally:
             os.chdir(pwd)
 
