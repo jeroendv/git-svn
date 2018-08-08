@@ -1,8 +1,10 @@
 import subprocess
 from git_svn.debug import DebugLog
 from git_svn import svn
+from git_svn import logFunctionScope
 import os
 
+@logFunctionScope
 def IsGitWc():
     try: 
         subprocess.check_output(['git', 'status'])
@@ -84,7 +86,7 @@ def GetGitSvnUrl():
     url = output[0]
     return url
 
-
+@logFunctionScope
 def GetSvnExternalsFromGitSvnBridge():
     hostRepoUrl = GetGitSvnUrl()
 

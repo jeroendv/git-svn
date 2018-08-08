@@ -4,6 +4,7 @@ import subprocess
 import urllib.parse
 from xml.etree import ElementTree as ET
 import shutil
+from git_svn import logFunctionScope
 
 def IsSvnWcDirty(path = "."):
     try: 
@@ -146,10 +147,14 @@ def GetQualifiedUrlForFolder(path):
     return xmlRootNode.find('entry/url').text
 
 
+
+
+@logFunctionScope
 def checkoutSvnExternal(svnExternal):
     """checkout or update an svn external
     """
     WCExternalPath = os.path.join(svnExternal.svnWCFolderPath, svnExternal.path.replace('/', os.sep))
+
 
 
     # check for existing svn external pointing to wrong url
