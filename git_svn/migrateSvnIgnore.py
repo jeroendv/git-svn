@@ -51,7 +51,7 @@ def parse_cli_args():
     
     return args
 
-
+@timeit
 def main():
     args = parse_cli_args()
 

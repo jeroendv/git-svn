@@ -9,6 +9,7 @@ except:
 
 from functools import wraps
 from git_svn.debug import DebugLog
+from time import time
 
 def logFunctionScope(f):
     @wraps(f)
@@ -17,4 +18,18 @@ def logFunctionScope(f):
             result = f(*args, **kw)
             return result
         
+    return wrap
+	
+def timeit(f):
+    @wraps(f)
+    def wrap(*args, **kw):
+        ts = time()
+        result = f(*args, **kw)
+        te = time()
+        print('func:{} args:[{}, {}] took: {:2.4f} sec'.format(
+            f.__name__
+            , args
+            , kw
+            , te-ts))
+        return result
     return wrap

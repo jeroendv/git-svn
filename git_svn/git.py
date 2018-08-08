@@ -1,10 +1,11 @@
 import subprocess
 from git_svn.debug import DebugLog
+from git_svn import timeit
 from git_svn import svn
 from git_svn import logFunctionScope
 import os
 
-@logFunctionScope
+@timeit
 def IsGitWc():
     try: 
         subprocess.check_output(['git', 'status'])
@@ -12,7 +13,7 @@ def IsGitWc():
     except subprocess.CalledProcessError:
         return False
 
-
+@timeit
 def IsGitWcDirty():
     text = subprocess.check_output(['git', 'status', "--short", '--untracked-files=no'])
     if len(text.splitlines()) == 0:
@@ -20,6 +21,7 @@ def IsGitWcDirty():
     else:
         return True
 
+@timeit
 def IsGitSvnRepo():
     if not IsGitWc(): 
         return False
@@ -40,6 +42,7 @@ def GetCurrentGitBranch():
     branchName = output[0]
     return branchName
 
+@timeit
 def GitCountCommits(start, end):
     output = subprocess.check_output(['git', 'log' ,'--oneline', start + ".." + end]).decode()
     return len(output.splitlines())
@@ -57,6 +60,7 @@ def checkout(commit_sha):
 
     
 
+@timeit
 def GetGitSvnBranchPointRev():
     # find the git commit where HEAD branched of from the SVN branch
     cmd =  ['git', 'log', '--grep=^git-svn-id:', '--first-parent', '-1', "--format=%H"]
@@ -86,7 +90,7 @@ def GetGitSvnUrl():
     url = output[0]
     return url
 
-@logFunctionScope
+@timeit
 def GetSvnExternalsFromGitSvnBridge():
     hostRepoUrl = GetGitSvnUrl()
 
