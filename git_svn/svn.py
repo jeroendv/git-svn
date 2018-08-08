@@ -172,12 +172,33 @@ def checkoutSvnExternal(svnExternal):
         # if the pegRev and operatative revision are set but not equal, then lets be conservative and do a clean checkout.
         forceCleanCheckout |= ((svnExternal.operativeRev is not None) and (svnExternal.pegRev != svnExternal.operativeRev))
         if forceCleanCheckout:
-            DebugLog.print('removing {path}!\n existing external points to {oldUrl} but new external points to {newUrl}. so a new checkout is needed.'.format(
-                path=WCExternalPath,
-                oldUrl=existingExternalQualifiedUrl,
-                newUrl=svnExternal.QualifiedUrl
-            ))
-            shutil.rmtree(WCExternalPath)
+            DebugLog.print("removing : " + WCExternalPath)
+            DebugLog.print("existing external points to")
+            DebugLog.print(existingExternalQualifiedUrl)
+            DebugLog.print("but new external points to")
+            DebugLog.print(svnExternal.QualifiedUrl)
+            DebugLog.print("So a new checkout is needed.")
+
+            def onerror(func, path, exc_info):
+                """
+                Error handler for ``shutil.rmtree``.
+
+                If the error is due to an access error (read only file)
+                it attempts to add write permission and then retries.
+
+                If the error is for another reason it re-raises the error.
+
+                Usage : ``shutil.rmtree(path, onerror=onerror)``
+                """
+                import stat
+                if not os.access(path, os.W_OK):
+                    # Is the error an access error ?
+                    os.chmod(path, stat.S_IWUSR)
+                    func(path)
+                else:
+                    raise
+            shutil.rmtree(WCExternalPath, onerror=onerror)
+
 
 
     if os.path.isdir(WCExternalPath):
