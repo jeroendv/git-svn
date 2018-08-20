@@ -27,7 +27,8 @@ setup(
             'git-svn-checkoutHistoricRev = git_svn.checkoutHistoricRev:main',
             'git-svn-checkoutSvnExternals = git_svn.checkoutSvnExternals:main',
             'git-svn-info = git_svn.info:main',
-            'git-svn-svnSparseCheckout = git_svn.SvnSparseCheckout:main'
+            'git-svn-svnSparseCheckout = git_svn.SvnSparseCheckout:main',
+            'git-svn-createSvnExternalsConfigFile = git_svn.createSvnExternalsConfigFile:main'
         ],
     },
     #include_package_data=True,
