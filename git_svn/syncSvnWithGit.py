@@ -59,8 +59,8 @@ def main():
     if not IsSvnWc():
         raise Exception("cwd is not an svn working copy: " + os.getcwd())
 
-    if not IsGitSvnRepo():
-        raise Exception("cwd is not a git-svn repo: " + os.getcwd())
+    if not IsGitWc():
+        raise Exception("cwd is not a git repo: " + os.getcwd())
 
     # find the git commit where HEAD branched of from the SVN branch
     (sha,gitSvnBranchPoint_SvnRev) = GetGitSvnBranchPointRev()
