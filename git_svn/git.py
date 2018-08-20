@@ -62,7 +62,7 @@ def checkout(commit_sha):
 @timeit
 def GetGitSvnBranchPointRev():
     # find the git commit where HEAD branched of from the SVN branch
-    cmd =  ['git', 'log', '--grep=^git-svn-id:', '--first-parent', '-1', "--format=%H"]
+    cmd =  ['git', 'log', '--grep=^git-svn-id:', '--date-order', '-1', "--format=%H"]
     DebugLog.print(str(cmd))
     output = subprocess.check_output(cmd).decode()
     DebugLog.print(output)
