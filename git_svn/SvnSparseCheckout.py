@@ -27,6 +27,12 @@ def parse_cli_args():
                         help="enable debug output",
                         action="store_true")
 
+    parser.add_argument("--username",
+                        help="svn username")
+
+    parser.add_argument("--password",
+                        help="svn credentials")
+
     parser.add_argument("-N", "--dry-run",
                         help="Do not perform any actions, only simulate them.",
                         action="store_true")
@@ -123,9 +129,17 @@ def main(arguments=None):
 
     cmd = ['svn', 'checkout'
         ,'--force'
-        , '--depth', 'empty' 
-        , sparseCheckout['svnRepoUrl']
-        , args.checkoutPath ] 
+        , '--depth', 'empty']
+
+    if args.username is not None:
+        cmd += ['--username', args.username]
+
+    if args.password is not None:
+        cmd += ['--password', args.password]
+    
+    cmd += [sparseCheckout['svnRepoUrl']
+            , args.checkoutPath ] 
+
     DebugLog.print(str(cmd))
 
     if not args.dry_run:
