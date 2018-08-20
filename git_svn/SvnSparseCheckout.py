@@ -75,11 +75,12 @@ def sparse_file_checkout(file):
 
 
 def sparse_dir_checkout(dir):
-    assert dir[-1] != os.sep
-
     if len(dir) == 0:
         return
 
+    assert dir[-1] != '/'
+    assert dir[-1] != os.sep
+    
     (head, tail) = os.path.split(dir)
 
     # recursively checkout the parent directories first
