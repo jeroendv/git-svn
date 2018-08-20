@@ -83,6 +83,11 @@ def sparse_dir_checkout(dir):
     
     (head, tail) = os.path.split(dir)
 
+    if svn.IsSvnWc(os.path.join(args.checkoutPath, dir)):
+        # if dir is already versioned, then it got checked out earlier!
+        # hence it must now be skipped, to prevent setting the depth back to empty!
+        return
+
     # recursively checkout the parent directories first
     if len(head) > 0:
         sparse_dir_checkout(head)
