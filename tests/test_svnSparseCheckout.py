@@ -1,8 +1,9 @@
 import pytest
 import yaml
+import os
+import sys
 
-
-def test_yamlConfigLoading():
+def test_yamlConfigLoading(tmpdir):
     yamlStr="""svn-repo-url: http://myserver.com/svn/aPath
 files:
     - file1.txt
@@ -19,13 +20,16 @@ files:
     assert 'file1.txt' == yamlConfig['files'][0]
     assert 'afolder/fileInaFolder.log' == yamlConfig['files'][1]
 
-def test_yamlConfigLoadingFromFile():
-    with open('.svnSparseConfig', "wt") as f:
+def test_yamlConfigLoadingFromFile(tmpdir):
+    os.chdir(tmpdir)
+    with open('.svnSparseCheckout.yml', "wt") as f:
         f.write("""svnRepoUrl: http://myserver.com/svn/aPath
 files:
     - file1.txt
     - afolder/fileInaFolder.log
 """)
+    print("tmpdir: " + str(tmpdir) + "\n")
+    print("cwd: " + str(os.getcwd()) + "\n")
 
     # recipy to load yaml from file
     with open('.svnSparseCheckout.yml', 'rt') as f2:
@@ -42,8 +46,11 @@ files:
     assert 'afolder/fileInaFolder.log' == yamlConfig['files'][1]
 
 
-def test_SvnSparseCheckoutInvocation():
+def test_SvnSparseCheckoutInvocation(tmpdir):
+    os.chdir(tmpdir)
+    
     from git_svn.SvnSparseCheckout import main
+    from git_svn.SvnSparseCheckout import parse_cli_args
 
     with open('.svnSparseCheckout.yml', "wt") as f:
         f.write("""svnRepoUrl: http://myserver.com/svn/aPath
@@ -51,7 +58,7 @@ files:
     - file1.txt
     - afolder/fileInaFolder.log
 """)
-
+    sys.argv = ['scriptname', '--dry-run', '--debug']
     # recipy to load yaml from file
     main()
 
