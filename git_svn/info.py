@@ -40,14 +40,8 @@ def parse_cli_args():
 @timeit
 def main():
     args = parse_cli_args()
-
-
-
+    
     # sanity checks
-
-    if not IsGitSvnRepo():
-        raise Exception("cwd is not a git-svn working copy: " + os.getcwd())
-
     if not IsSvnWc():
         raise Exception("cwd is not an svn working copy: " + os.getcwd())
 
