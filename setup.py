@@ -36,7 +36,8 @@ setup(
     install_requires=[
         'packaging',
         'pip',
-        'six'
+        'six',
+        'pyyaml'
     ],
     setup_requires=[
         "pytest-runner"
