@@ -20,7 +20,7 @@ def IsSvnWcDirty(path = "."):
 @timeit
 def IsSvnWc(path = "."):
     try: 
-        subprocess.check_output(['svn', 'info', path])
+        subprocess.check_output(['svn', 'info', path],  stderr=subprocess.STDOUT)
         return True
     except subprocess.CalledProcessError:
         return False
