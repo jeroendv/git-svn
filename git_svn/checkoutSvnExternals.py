@@ -67,7 +67,7 @@ externals:
     for e in svnExternalsConfig['externals']:
         path = e['path']
         externalDefinition  = e['externalDefinition']
-        svnExternal = SvnExternal.parse(repoUrl, path, externalDefinition)
+        svnExternal = SvnExternal.parse(repoUrl, "./", externalDefinition + " " + path)
 
         svnExternals.append(svnExternal)
 
