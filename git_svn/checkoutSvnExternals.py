@@ -6,6 +6,8 @@ import argparse
 from git_svn.git import *
 from git_svn.svn import *
 
+from concurrent.futures import ThreadPoolExecutor
+
 if sys.version_info < (3,5):
     print("Script is being run with a too old version of Python. Needs 3.5.")
     sys.exit(0)
@@ -43,6 +45,15 @@ def parse_cli_args():
     
     return args
 
+def checkoutExternal(svnExternal):
+    """
+    checkout a single external
+    """
+    print(svnExternal.svnWCFolderPath + " : " + str(svnExternal))
+            
+    if not args.dry_run:
+        checkoutSvnExternal(svnExternal)    
+
 
 def main():
     args = parse_cli_args()
@@ -59,10 +70,9 @@ def main():
 
     print("#externals: " + str(len(externalDefinitions)))
 
-    for externalDef in externalDefinitions:
-        print(externalDef.svnWCFolderPath + " : " + str(externalDef))
-        
-        if not args.dry_run:
-            checkoutSvnExternal(externalDef)               
+    # fetch all externals concurrently using multiple workers
+    with ThreadPoolExecutor(max_workers=8) as e:
+        e.map(checkoutExternal, externalDefinitions)
+                       
 
     sys.exit(0)
