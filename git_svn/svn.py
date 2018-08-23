@@ -4,7 +4,9 @@ import subprocess
 import urllib.parse
 from xml.etree import ElementTree as ET
 import shutil
+from git_svn import timeit
 
+@timeit
 def IsSvnWcDirty(path = "."):
     try: 
         text = subprocess.check_output(['svn', 'status', '--quiet', path])
@@ -15,6 +17,7 @@ def IsSvnWcDirty(path = "."):
     except:
         raise
 
+@timeit
 def IsSvnWc(path = "."):
     try: 
         subprocess.check_output(['svn', 'info', path])
@@ -146,10 +149,14 @@ def GetQualifiedUrlForFolder(path):
     return xmlRootNode.find('entry/url').text
 
 
+
+
+@timeit
 def checkoutSvnExternal(svnExternal):
     """checkout or update an svn external
     """
     WCExternalPath = os.path.join(svnExternal.svnWCFolderPath, svnExternal.path.replace('/', os.sep))
+
 
 
     # check for existing svn external pointing to wrong url
@@ -264,7 +271,7 @@ def checkoutSvnExternal(svnExternal):
             DebugLog.print(svnOutput)
         finally:
             os.chdir(pwd)
-
+@timeit
 def GetSvnWCBaseRev():
     xmlStr = subprocess.check_output(['svn', 'info' ,'--xml', '-r',  'BASE']).decode()
     xmlEl = ET.fromstring(xmlStr)
