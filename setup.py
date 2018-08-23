@@ -26,7 +26,8 @@ setup(
             'git-svn-syncSvnWithGit = git_svn.syncSvnWithGit:main',
             'git-svn-checkoutHistoricRev = git_svn.checkoutHistoricRev:main',
             'git-svn-checkoutSvnExternals = git_svn.checkoutSvnExternals:main',
-            'git-svn-info = git_svn.info:main'
+            'git-svn-info = git_svn.info:main',
+            'git-svn-svnSparseCheckout = git_svn.SvnSparseCheckout:main'
         ],
     },
     #include_package_data=True,
@@ -35,7 +36,8 @@ setup(
     install_requires=[
         'packaging',
         'pip',
-        'six'
+        'six',
+        'pyyaml'
     ],
     setup_requires=[
         "pytest-runner"
