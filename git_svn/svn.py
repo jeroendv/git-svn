@@ -37,6 +37,37 @@ def checkout(rev_int):
     subprocess.check_call(['svn', 'update','-r', str(rev_int)])
 
 
+class SvnNodeType:
+    FILE = 1
+    DIR = 2
+
+def getNodeType(svnExternal):
+    cmd = ['svn', 'info', '--xml']
+    if svnExternal.operativeRev:
+        cmd += ['-r', str(svnExternal.operativeRev)]
+
+    if svnExternal.pegRev is not None:
+        cmd += [svnExternal.QualifiedUrl + '@' + str(svnExternal.pegRev)]
+    else:
+        cmd += [svnExternal.QualifiedUrl]
+    
+    try:
+        DebugLog.print(str(cmd))
+        xmlStr = subprocess.check_output(cmd).decode()
+        xmlRootNode = ET.fromstring(xmlStr)
+        assert xmlRootNode.tag == 'info'
+        typeStr = xmlRootNode.find('./entry').attrib['kind']
+
+        if typeStr == 'file':
+            return SvnNodeType.FILE
+        elif typeStr == 'dir':
+            return SvnNodeType.DIR
+        else:
+            raise Exception('svn info returned unknown type: ' + typeStr)
+    except subprocess.CalledProcessError:
+        return None
+
+
 class SvnExternal:
     """ Single svn:external definition set on a specific folder in a working copy
     [-r <operativeRev>] <url>[@<pegRev>] <path>
@@ -156,6 +187,7 @@ def checkoutSvnExternal(svnExternal):
     """checkout or update an svn external
     """
     WCExternalPath = os.path.join(svnExternal.svnWCFolderPath, svnExternal.path.replace('/', os.sep))
+    DebugLog.print("check external at : " + WCExternalPath)
 
 
 
@@ -209,6 +241,8 @@ def checkoutSvnExternal(svnExternal):
 
 
     if os.path.isdir(WCExternalPath):
+        DebugLog.print("udpate external dir at: " + WCExternalPath)
+        
         # build svn cli arguments
         cmd  = ['svn', 'up', '-q'] 
         if svnExternal.pegRev:
@@ -228,6 +262,8 @@ def checkoutSvnExternal(svnExternal):
         finally:
             os.chdir(pwd)
     elif os.path.isfile(WCExternalPath):
+        DebugLog.print("udpate external file at: " + WCExternalPath)
+        
         # build svn cli arguments
         cmd = ['svn', 'up', '-q']
         if svnExternal.pegRev:
@@ -235,7 +271,6 @@ def checkoutSvnExternal(svnExternal):
             cmd += ['-r', str(svnExternal.pegRev)]
         
         cmd += [os.path.basename(WCExternalPath)]
-
 
         # checkout already exists, just update it
         pwd = os.getcwd()
@@ -248,29 +283,74 @@ def checkoutSvnExternal(svnExternal):
             os.chdir(pwd)
 
     else:
+        DebugLog.print("new checkout at: " + WCExternalPath)
+        
         assert not os.path.exists(WCExternalPath)
-        # build svn cli arguments
-        cmd = ['svn', 'checkout', '-q']
-        if svnExternal.operativeRev:
-            cmd += ['-r', str(svnExternal.operativeRev)]
-        
-        if svnExternal.pegRev:
-            cmd += [svnExternal.QualifiedUrl+'@'+str(svnExternal.pegRev)]
-        else:
-            cmd += [svnExternal.QualifiedUrl]
+        type = getNodeType(svnExternal)
+        if type == SvnNodeType.DIR:
+            DebugLog.print("new checkout of dir at: " + WCExternalPath)
+            # build svn cli arguments
+            cmd = ['svn', 'checkout', '-q']
+            if svnExternal.operativeRev:
+                cmd += ['-r', str(svnExternal.operativeRev)]
+            
+            if svnExternal.pegRev:
+                cmd += [svnExternal.QualifiedUrl+'@'+str(svnExternal.pegRev)]
+            else:
+                cmd += [svnExternal.QualifiedUrl]
 
-        cmd += [svnExternal.path.replace('/', os.sep)]
-        
-        # external doesn't yet exists, check it out from the svn repo
-        pwd = os.getcwd()
-        os.makedirs(svnExternal.svnWCFolderPath, exist_ok=True)
-        os.chdir(svnExternal.svnWCFolderPath)
-        try:
-            DebugLog.print(str(cmd))
-            svnOutput = subprocess.check_output(cmd).decode()
-            DebugLog.print(svnOutput)
-        finally:
-            os.chdir(pwd)
+            cmd += [svnExternal.path.replace('/', os.sep)]
+            
+            # external doesn't yet exists, check it out from the svn repo
+            pwd = os.getcwd()
+            os.makedirs(svnExternal.svnWCFolderPath, exist_ok=True)
+            os.chdir(svnExternal.svnWCFolderPath)
+            try:
+                DebugLog.print(str(cmd))
+                svnOutput = subprocess.check_output(cmd).decode()
+                DebugLog.print(svnOutput)
+            finally:
+                os.chdir(pwd)
+        elif type == SvnNodeType.FILE:
+            DebugLog.print("new checkout of file at: " + WCExternalPath)
+            # external doesn't yet exists, check it out from the svn repo
+            pwd = os.getcwd()
+            dirpath = os.path.dirname(os.path.join(svnExternal.svnWCFolderPath, svnExternal.path))
+            os.makedirs(dirpath, exist_ok=True)
+            os.chdir(dirpath)
+            DebugLog.print("cwd: " + os.getcwd())
+            try:
+                urlparts = urllib.parse.urlparse(svnExternal.QualifiedUrl)
+                parentDirUrl = urllib.parse.urlunparse((urlparts.scheme,
+                                                       urlparts.netloc,
+                                                       os.path.dirname(urlparts.path),
+                                                       "","",""))
+                cmd = ['svn', 'checkout'
+                    ,'--force'
+                    , '--depth', 'empty',
+                    parentDirUrl,
+                    "."]
+                DebugLog.print(str(cmd))
+                subprocess.check_call(cmd)
+
+                cmd = ['svn', 'update'
+                    ,'--force'
+                    , '--set-depth', 'immediates' 
+                    , '--accept=working'
+                    , os.path.basename(urlparts.path)]   
+                DebugLog.print(str(cmd))
+                subprocess.check_call(cmd)
+
+
+            finally:
+                os.chdir(pwd)
+            
+        elif type is None:
+            raise Exception("svn External does not exist and thus can't be checked out: " + str(svnEsvnExternal))
+        else:
+            # this type can only be any of the 3 values
+            # this the SvnNodetype enum expand?
+            assert false
 @timeit
 def GetSvnWCBaseRev():
     xmlStr = subprocess.check_output(['svn', 'info' ,'--xml', '-r',  'BASE']).decode()
