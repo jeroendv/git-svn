@@ -194,8 +194,7 @@ def checkoutSvnExternal(svnExternal):
     # check for existing svn external pointing to wrong url
     # in which case the external needs to be deleted and a clean checkout is needed
     # instead of only updating the existing svnExternal to the proper revision
-    if os.path.exists(WCExternalPath):
-
+    if os.path.isdir(WCExternalPath):
         # an svn working copy is expected!
         if not IsSvnWc(WCExternalPath):
             raise Exception("Terminating: svn external expected, but no svn WC is found:" + WCExternalPath)
