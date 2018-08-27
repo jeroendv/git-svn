@@ -183,13 +183,14 @@ def GetQualifiedUrlForFolder(path):
 
 
 @timeit
-def checkoutSvnExternal(svnExternal):
+def checkoutSvnExternal(svnExternal, discard_local_changes=False):
     """checkout or update an svn external
     """
     WCExternalPath = os.path.join(svnExternal.svnWCFolderPath, svnExternal.path.replace('/', os.sep))
     DebugLog.print("check external at : " + WCExternalPath)
 
 
+    svnWc_is_dirty = False
 
     # check for existing svn external pointing to wrong url
     # in which case the external needs to be deleted and a clean checkout is needed
@@ -200,8 +201,12 @@ def checkoutSvnExternal(svnExternal):
             raise Exception("Terminating: svn external expected, but no svn WC is found:" + WCExternalPath)
 
         # svn wc may not be dirty, since this action would result in lost data!
-        if IsSvnWcDirty(WCExternalPath):
-            raise Exception("Terminating: dirty svn external can't be removed : " + WCExternalPath)
+        svnWc_is_dirty = IsSvnWcDirty(WCExternalPath)
+
+        if svnWc_is_dirty and discard_local_changes is False:
+            raise Exception("Terminating: dirty svn external is not allowed (risk of losing changes!): " + WCExternalPath)
+
+                
 
         # if the working copy is a checkout of the wrong svn url then delete it.
         # e.g. the external has updated and  new checkout is needed
@@ -209,7 +214,11 @@ def checkoutSvnExternal(svnExternal):
         forceCleanCheckout = (svnExternal.QualifiedUrl != existingExternalQualifiedUrl)
         # if the pegRev and operatative revision are set but not equal, then lets be conservative and do a clean checkout.
         forceCleanCheckout |= ((svnExternal.operativeRev is not None) and (svnExternal.pegRev != svnExternal.operativeRev))
-        if forceCleanCheckout:
+
+        if forceCleanCheckout and  svnWc_is_dirty and discard_local_changes is False:
+            raise Exception("Terminating: conflicting requirements: local changes are not discarded, yet a clean checkout is required: " + WCExternalPath)
+
+        if forceCleanCheckout: 
             DebugLog.print("removing : " + WCExternalPath)
             DebugLog.print("existing external points to")
             DebugLog.print(existingExternalQualifiedUrl)
@@ -241,6 +250,18 @@ def checkoutSvnExternal(svnExternal):
 
     if os.path.isdir(WCExternalPath):
         DebugLog.print("udpate external dir at: " + WCExternalPath)
+
+        if svnWc_is_dirty is True:
+            assert discard_local_changes is True # bug: should have failed earlier!
+
+            # revert local changes
+            cmd = ['svn', 'revert', '-R', WCExternalPath]
+
+            DebugLog.print(str(cmd))
+            svnOutput = subprocess.check_output(cmd).decode()
+            DebugLog.print(svnOutput)
+
+
         
         # build svn cli arguments
         cmd  = ['svn', 'up', '-q'] 
@@ -262,6 +283,16 @@ def checkoutSvnExternal(svnExternal):
             os.chdir(pwd)
     elif os.path.isfile(WCExternalPath):
         DebugLog.print("udpate external file at: " + WCExternalPath)
+
+        if svnWc_is_dirty is True:
+            assert discard_local_changes is True # bug: should have failed earlier!
+
+            # revert local changes
+            cmd = ['svn', 'revert', WCExternalPath]
+
+            DebugLog.print(str(cmd))
+            svnOutput = subprocess.check_output(cmd).decode()
+            DebugLog.print(svnOutput)
         
         # build svn cli arguments
         cmd = ['svn', 'up', '-q']
