@@ -215,18 +215,14 @@ def checkoutSvnExternal(svnExternal):
             assert (svnExternal.operativeRev is None) or (svnExternal.operativeRev == svnExternal.pegRev)
             cmd += ['-r', str(svnExternal.pegRev)]
         
-        cmd += ['.']
+        cmd += [WCExternalPath]
 
 
         # checkout already exists, just update it
-        pwd = os.getcwd()
-        os.chdir(WCExternalPath)
-        try:
-            DebugLog.print(str(cmd))
-            svnOutput = subprocess.check_output(cmd).decode()
-            DebugLog.print(svnOutput)
-        finally:
-            os.chdir(pwd)
+        DebugLog.print(str(cmd))
+        svnOutput = subprocess.check_output(cmd).decode()
+        DebugLog.print(svnOutput)
+
     elif os.path.isfile(WCExternalPath):
         # build svn cli arguments
         cmd = ['svn', 'up', '-q']
@@ -234,22 +230,20 @@ def checkoutSvnExternal(svnExternal):
             assert (svnExternal.operativeRev is None) or (svnExternal.operativeRev == svnExternal.pegRev)
             cmd += ['-r', str(svnExternal.pegRev)]
         
-        cmd += [os.path.basename(WCExternalPath)]
+        cmd += [WCExternalPath]
 
 
         # checkout already exists, just update it
-        pwd = os.getcwd()
-        os.chdir(os.path.dirname(WCExternalPath))
-        try:
-            DebugLog.print(str(cmd))
-            svnOutput = subprocess.check_output(cmd).decode()
-            DebugLog.print(svnOutput)
-        finally:
-            os.chdir(pwd)
+        DebugLog.print(str(cmd))
+        svnOutput = subprocess.check_output(cmd).decode()
+        DebugLog.print(svnOutput)
+
 
     else:
         assert not os.path.exists(WCExternalPath)
         # build svn cli arguments
+        os.makedirs(WCExternalPath, exist_ok=True)
+
         cmd = ['svn', 'checkout', '-q']
         if svnExternal.operativeRev:
             cmd += ['-r', str(svnExternal.operativeRev)]
@@ -259,18 +253,13 @@ def checkoutSvnExternal(svnExternal):
         else:
             cmd += [svnExternal.QualifiedUrl]
 
-        cmd += [svnExternal.path.replace('/', os.sep)]
+        cmd += [WCExternalPath]
         
         # external doesn't yet exists, check it out from the svn repo
-        pwd = os.getcwd()
-        os.makedirs(svnExternal.svnWCFolderPath, exist_ok=True)
-        os.chdir(svnExternal.svnWCFolderPath)
-        try:
-            DebugLog.print(str(cmd))
-            svnOutput = subprocess.check_output(cmd).decode()
-            DebugLog.print(svnOutput)
-        finally:
-            os.chdir(pwd)
+
+        DebugLog.print(str(cmd))
+        svnOutput = subprocess.check_output(cmd).decode()
+        DebugLog.print(svnOutput)
 @timeit
 def GetSvnWCBaseRev():
     xmlStr = subprocess.check_output(['svn', 'info' ,'--xml', '-r',  'BASE']).decode()
