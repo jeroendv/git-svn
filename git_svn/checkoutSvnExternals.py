@@ -8,6 +8,7 @@ from git_svn.svn import *
 import yaml
 
 from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ProcessPoolExecutor
 
 if sys.version_info < (3,5):
     print("Script is being run with a too old version of Python. Needs 3.5.")
@@ -35,6 +36,11 @@ def parse_cli_args():
     parser.add_argument("-N", "--dry-run",
                         help="Do not perform any actions, only simulate them.",
                         action="store_true")
+
+    parser.add_argument("-j", "--jobs"
+                        , help="number of svn externals checkedout concurrently"
+                        , type=int
+                        , default=4)
 
     args = parser.parse_args()
 
@@ -87,7 +93,9 @@ externals:
 
 
 def main():
+    global args
     args = parse_cli_args()
+    
     if os.path.isfile(args.svnExternalsConfigFile):
         externalDefinitions = parseSvnExternalsConfigFile(args.svnExternalsConfigFile)
     elif IsGitSvnRepo():    
@@ -103,8 +111,10 @@ def main():
     print("#externals: " + str(len(externalDefinitions)))
 
     # fetch all externals concurrently using multiple workers
-    with ThreadPoolExecutor(max_workers=8) as e:
+    with ThreadPoolExecutor(max_workers=args.jobs) as e:
         e.map(checkoutExternal, externalDefinitions)
+
+    DebugLog.print("waiting for all externals to finish checking out.")
                        
 
     sys.exit(0)
