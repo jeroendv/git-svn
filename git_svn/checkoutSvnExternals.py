@@ -5,6 +5,7 @@ from git_svn.debug import *
 import argparse
 from git_svn.git import *
 from git_svn.svn import *
+import yaml
 
 if sys.version_info < (3,5):
     print("Script is being run with a too old version of Python. Needs 3.5.")
@@ -23,6 +24,10 @@ def parse_cli_args():
     parser.add_argument("-d", "--debug",
                     help="enable debug output",
                     action="store_true")
+
+    parser.add_argument("--svnExternalsConfigFile"
+                    , help="config file describing all svn externals"
+                    , default=".svnExternals.yml")
                    
 
     parser.add_argument("-N", "--dry-run",
@@ -44,10 +49,37 @@ def parse_cli_args():
     return args
 
 
+def parseSvnExternalsConfigFile(file):
+    with open(file,"rt") as f:
+        svnExternalsConfig = yaml.load(f)
+
+    example_yamlconfig = """svnRepoUrl: foobar
+externals:
+  - path: folder1
+    externalDefinition: def1
+  - path: folder2
+    externalDefinition: def a
+"""
+
+    repoUrl = svnExternalsConfig['svnRepoUrl']
+
+    svnExternals = []
+    for e in svnExternalsConfig['externals']:
+        path = e['path']
+        externalDefinition  = e['externalDefinition']
+        svnExternal = SvnExternal.parse(repoUrl, "./", externalDefinition + " " + path)
+
+        svnExternals.append(svnExternal)
+
+    
+    return svnExternals
+
+
 def main():
     args = parse_cli_args()
-
-    if IsGitSvnRepo():    
+    if os.path.isfile(args.svnExternalsConfigFile):
+        externalDefinitions = parseSvnExternalsConfigFile(args.svnExternalsConfigFile)
+    elif IsGitSvnRepo():    
         # if therws is a git-svn repo then lets assume it is the main Working copy
         # and git in favor of svn 
         externalDefinitions = GetSvnExternalsFromGitSvnBridge()
