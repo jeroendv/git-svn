@@ -75,8 +75,11 @@ def sparse_file_checkout(file):
         ,'--force'
         , '--set-depth', 'immediates' 
         , '--accept=working'
-        , '-r' , args.rev
         , os.path.join(args.checkoutPath, file)]   
+
+    if args.rev is not None:
+        cmd += ['-r' , args.rev]
+        
     DebugLog.print(str(cmd))
 
     if not args.dry_run:
@@ -105,10 +108,14 @@ def sparse_dir_checkout(dir):
     # checkout dir itself.
     cmd = ['svn', 'update'
         , '--force'
-        , '--set-depth', 'empty' 
-        , '-r' , args.rev
+        , '--set-depth', 'empty'
         , os.path.join(args.checkoutPath, dir)]
+
+    if args.rev is not None:
+        cmd += ['-r' , args.rev]
+
     DebugLog.print(str(cmd))
+    
 
     if not args.dry_run:
         subprocess.check_output(cmd)  
@@ -134,8 +141,10 @@ def main(arguments=None):
 
     cmd = ['svn', 'checkout'
         ,'--force'
-        , '--depth', 'empty'
-        , '-r' , args.rev]
+        , '--depth', 'empty']
+
+    if args.rev is not None:
+        cmd += ['-r' , args.rev]
 
     if args.username is not None:
         cmd += ['--username', args.username]
