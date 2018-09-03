@@ -36,6 +36,9 @@ def parse_cli_args():
     parser.add_argument("-N", "--dry-run",
                         help="Do not perform any actions, only simulate them.",
                         action="store_true")
+                        
+    parser.add_argument("-r", "--rev",
+                        help="svn revision to checkout")
 
     parser.add_argument("configFilePath",
                         nargs="?",
@@ -73,6 +76,10 @@ def sparse_file_checkout(file):
         , '--set-depth', 'immediates' 
         , '--accept=working'
         , os.path.join(args.checkoutPath, file)]   
+
+    if args.rev is not None:
+        cmd += ['-r' , args.rev]
+        
     DebugLog.print(str(cmd))
 
     if not args.dry_run:
@@ -101,9 +108,14 @@ def sparse_dir_checkout(dir):
     # checkout dir itself.
     cmd = ['svn', 'update'
         , '--force'
-        , '--set-depth', 'empty' 
+        , '--set-depth', 'empty'
         , os.path.join(args.checkoutPath, dir)]
+
+    if args.rev is not None:
+        cmd += ['-r' , args.rev]
+
     DebugLog.print(str(cmd))
+    
 
     if not args.dry_run:
         subprocess.check_output(cmd)  
@@ -130,6 +142,9 @@ def main(arguments=None):
     cmd = ['svn', 'checkout'
         ,'--force'
         , '--depth', 'empty']
+
+    if args.rev is not None:
+        cmd += ['-r' , args.rev]
 
     if args.username is not None:
         cmd += ['--username', args.username]
