@@ -11,6 +11,7 @@ if sys.version_info < (3,5):
     print("Script is being run with a too old version of Python. Needs 3.5.")
     sys.exit(0)
 
+global args
 args = []
 
 def parse_cli_args():
@@ -32,6 +33,10 @@ def parse_cli_args():
 
     parser.add_argument("-N", "--dry-run",
                         help="Do not perform any actions, only simulate them.",
+                        action="store_true")
+
+    parser.add_argument("-ci", "--ci",
+                        help="ci environment, e.g. discard all local changes in existing externals",
                         action="store_true")
 
     args = parser.parse_args()
@@ -95,6 +100,6 @@ def main():
         print(externalDef.svnWCFolderPath + " : " + str(externalDef))
         
         if not args.dry_run:
-            checkoutSvnExternal(externalDef)               
+            checkoutSvnExternal(externalDef, discard_local_changes = args.ci)               
 
     sys.exit(0)
