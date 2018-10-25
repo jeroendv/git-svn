@@ -42,6 +42,10 @@ def parse_cli_args():
 
     parser.add_argument("-r", "--revision",
                         help="specify the revision form where to start git svn fetch (defaults to svn BASE revision).")
+    
+    parser.add_argument("-f", "--force",
+                        help="force git svn init even if svn wc is dirty",
+                        action="store_true")
 
     args = parser.parse_args()
 
@@ -85,7 +89,7 @@ def main():
     if not svn.IsSvnWc():
         raise Exception("cwd is not an svn working copy: " + os.getcwd())
 
-    if svn.IsSvnWcDirty():
+    if svn.IsSvnWcDirty() and not args.force:
         raise Exception("""svn working copy is dirty.
 please commit or shelve your local changes so they can't be lost before initializing a git-svn bridge.""")
 
