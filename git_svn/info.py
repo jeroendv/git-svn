@@ -23,6 +23,11 @@ def parse_cli_args():
                     help="enable debug output",
                     action="store_true")
 
+    parser.add_argument("-v", "--verbose",
+                    help="show dirty flag information",
+                    action="store_true")
+
+
     args = parser.parse_args()
 
 
@@ -46,12 +51,18 @@ def main():
         raise Exception("cwd is not an svn working copy: " + os.getcwd())
 
     svnBaseRev = int(GetSvnWCBaseRev())
-    svnDirtyFlag = " (*)" if IsSvnWcDirty() else ""
+    if args.verbose:
+        svnDirtyFlag = " (*)" if IsSvnWcDirty() else ""
+    else:
+        svnDirtyFlag = ""
 
     (gitSvnBranchPoint_gitSHA, svnGitBranchPoint_svnRev) = GetGitSvnBranchPointRev()
     svnGitBranchPoint_svnRev = int(svnGitBranchPoint_svnRev)
 
-    gitDirtyFlag = " (*)" if IsGitWcDirty() else ""
+    if args.verbose:
+        gitDirtyFlag = " (*)" if IsGitWcDirty() else ""
+    else:
+        gitDirtyFlag = ""
 
     gitBranchAheadCount = GitCountCommits(gitSvnBranchPoint_gitSHA, GetCurrentGitBranch())
 
