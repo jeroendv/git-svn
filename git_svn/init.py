@@ -108,12 +108,14 @@ please commit or shelve your local changes so they can't be lost before initiali
     assert 1 == len(n)
     relative_url = urllib.parse.unquote(n[0].text)
 
-    n = info_root.findall('./entry/commit')
-    assert 1 == len(n)
-    rev = int(n[0].get('revision'))
+
 
     if args.revision is not None:
         rev = int(args.revision)
+    else:
+        n = info_root.findall('./entry/commit')
+        assert 1 == len(n)
+        rev = int(n[0].get('revision'))
 
     assert "^/" == relative_url[:2]
     branchpath = relative_url[2:]
