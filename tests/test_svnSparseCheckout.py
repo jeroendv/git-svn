@@ -48,19 +48,18 @@ files:
 
 def test_SvnSparseCheckoutInvocation(tmpdir):
     os.chdir(tmpdir)
-    
-    from git_svn.SvnSparseCheckout import main
-    from git_svn.SvnSparseCheckout import parse_cli_args
-
     with open('.svnSparseCheckout.yml', "wt") as f:
         f.write("""svnRepoUrl: http://myserver.com/svn/aPath
 files:
     - file1.txt
     - afolder/fileInaFolder.log
 """)
-    sys.argv = ['scriptname', '--dry-run', '--debug']
+
+    
     # recipy to load yaml from file
-    main()
+    sys.argv = ['scriptname', '--dry-run', '--debug']
+    import git_svn.SvnSparseCheckout
+    git_svn.SvnSparseCheckout.main()
 
 
 
