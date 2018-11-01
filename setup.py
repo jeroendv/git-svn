@@ -21,6 +21,7 @@ setup(
     entry_points={
         'console_scripts': [
             'git-svn-init = git_svn.init:main',
+            'git-svn-initDef = git_svn.gitSvnDefInit:main',
             "git-svn-checkoutHistoricSvnExternals = git_svn.checkoutHistoricSvnExternals:main",
             'git-svn-migrateSvnIgnore = git_svn.migrateSvnIgnore:main',
             'git-svn-syncSvnWithGit = git_svn.syncSvnWithGit:main',
