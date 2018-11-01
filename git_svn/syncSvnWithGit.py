@@ -19,12 +19,7 @@ args = []
 
 def parse_cli_args():
     """parse the script input arguments"""
-    parser = argparse.ArgumentParser(description=r"""migrate svn ignore rules:
-
-    1) ignore rules from svn itself, i.e. svn:ignore properties
-    2) ignore .svn/ in git
-    3) ignore  svn externals 
-    4) ignore paths ignore by the git-svn bridge""")
+    parser = argparse.ArgumentParser(description=r"""update the svn working copy to the git branching point""")
 
     parser.add_argument("-v", "--verbose",
                     help="increase output verbosity",
