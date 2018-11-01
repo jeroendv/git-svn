@@ -22,11 +22,8 @@ def IsGitWcDirty():
 
 @timeit
 def IsGitSvnRepo():
-    if not IsGitWc(): 
-        return False
-        
     try: 
-        subprocess.check_output(['git','config', '--local', '--get-regexp', 'svn-remote\..*\.url'])
+        subprocess.check_output(['git','config', '--local', '--get-regexp', 'svn-remote.svn.url'])
         return True
 
     except subprocess.CalledProcessError as e:
