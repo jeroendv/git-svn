@@ -28,7 +28,7 @@ requirements:
 * git
 * svn
 * git-svn
-* python
+* python3
 
 setup:
 ```
@@ -123,7 +123,7 @@ git svn is a git gateway drug. It allows devs to work locally in git while the b
 # references
 official git-svn documentation:
 * [cli reference](https://git-scm.com/docs/git-svn)
-* [additional docs](https://git-scm.com/docs/git-svn#_rebase_vs_pull_merge)))
+* [additional docs](https://git-scm.com/docs/git-svn#_rebase_vs_pull_merge)
 * [caveats](https://git-scm.com/docs/git-svn#_caveats)
 * [bugs](https://git-scm.com/docs/git-svn#_bugs)
 
