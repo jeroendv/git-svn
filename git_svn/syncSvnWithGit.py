@@ -51,15 +51,32 @@ def parse_cli_args():
 def main():
     args = parse_cli_args()
 
-    if not IsSvnWc():
-        raise Exception("cwd is not an svn working copy: " + os.getcwd())
-
     if not IsGitWc():
         raise Exception("cwd is not a git repo: " + os.getcwd())
 
     if IsGitWcDirty():
         raise Exception("cwd is dirty git working copy, terminating due to risk of loosing changes: " + os.getcwd())
         
+
+
+    if not IsSvnWc():
+        clean_svn_checkout()
+        sys.exit(0)
+
+    if IsSvnWc():
+        updated_existing_svnWC()
+        sys.exit(0)
+    
+
+
+    
+                   
+def clean_svn_checkout():
+    #TODO
+    pass 
+    
+
+def updated_existing_svnWC():
     # find the git commit where HEAD branched of from the SVN branch
     (sha,gitSvnBranchPoint_SvnRev) = GetGitSvnBranchPointRev()
 
@@ -85,6 +102,3 @@ def main():
     ]
     DebugLog.print(str(cmd))    
     subprocess.check_call(cmd)
-                   
-
-    sys.exit(0)
