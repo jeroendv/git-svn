@@ -2,6 +2,7 @@ from __future__ import print_function
 import sys
 import traceback
 import os
+import re
 
 from git_svn.debug import *
 from git_svn.git import *
@@ -49,6 +50,7 @@ def parse_cli_args():
     return args
 
 def main():
+    global args
     args = parse_cli_args()
 
     if not IsGitWc():
@@ -72,8 +74,26 @@ def main():
     
                    
 def clean_svn_checkout():
-    #TODO
-    pass 
+    # find the git commit where HEAD branched of from the SVN branch
+    # i.e. find the most recent contained commit with a log entry as follows
+    # git-svn-id: http://vsrv-bele-svn1/svn/Software/Main/NMAPI/NMAPI_Main@72264 cfd94225-6148-4c34-bb2a-21ea3148c527
+    cmd =  ['git', 'log', '--grep=^git-svn-id:', '--date-order', '-1']
+    DebugLog.print(str(cmd))
+    output = subprocess.check_output(cmd).decode()
+    m = re.search(r"git-svn-id: ([^@]*)@([0-9]*)", output)
+    url = m.group(1)
+    svn_rev = int(m.group(2))
+
+    
+    cmd = ['svn', 'checkout',
+        '--force',
+        url + "@" + str(svn_rev),
+        '.']
+    DebugLog.print(str(cmd))
+    if not args.dry_run:
+        subprocess.check_call(cmd)
+    
+    sys.exit(0)
     
 
 def updated_existing_svnWC():
