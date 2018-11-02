@@ -29,6 +29,12 @@ def parse_cli_args():
     parser.add_argument("-d", "--debug",
                     help="enable debug output",
                     action="store_true")
+
+    parser.add_argument('--username',
+                    help="svn user name")
+    
+    parser.add_argument('--password',
+                    help="svn password")
                    
 
     parser.add_argument("-N", "--dry-run",
@@ -78,6 +84,14 @@ def clean_svn_checkout():
     # i.e. find the most recent contained commit with a log entry as follows
     # git-svn-id: http://vsrv-bele-svn1/svn/Software/Main/NMAPI/NMAPI_Main@72264 cfd94225-6148-4c34-bb2a-21ea3148c527
     cmd =  ['git', 'log', '--grep=^git-svn-id:', '--date-order', '-1']
+    
+    if args.username is not None:
+        cmd += ['--username', args.username]
+
+    if args.password is not None:
+        cmd += ['--password', args.password]
+
+
     DebugLog.print(str(cmd))
     output = subprocess.check_output(cmd).decode()
     m = re.search(r"git-svn-id: ([^@]*)@([0-9]*)", output)
