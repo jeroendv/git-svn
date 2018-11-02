@@ -85,13 +85,6 @@ def clean_svn_checkout():
     # git-svn-id: http://vsrv-bele-svn1/svn/Software/Main/NMAPI/NMAPI_Main@72264 cfd94225-6148-4c34-bb2a-21ea3148c527
     cmd =  ['git', 'log', '--grep=^git-svn-id:', '--date-order', '-1']
     
-    if args.username is not None:
-        cmd += ['--username', args.username]
-
-    if args.password is not None:
-        cmd += ['--password', args.password]
-
-
     DebugLog.print(str(cmd))
     output = subprocess.check_output(cmd).decode()
     m = re.search(r"git-svn-id: ([^@]*)@([0-9]*)", output)
@@ -103,6 +96,12 @@ def clean_svn_checkout():
         '--force',
         url + "@" + str(svn_rev),
         '.']
+    if args.username is not None:
+        cmd += ['--username', args.username]
+
+    if args.password is not None:
+        cmd += ['--password', args.password]
+        
     DebugLog.print(str(cmd))
     if not args.dry_run:
         subprocess.check_call(cmd)
