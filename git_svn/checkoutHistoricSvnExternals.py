@@ -80,7 +80,7 @@ def main():
     if IsGitSvnRepo():    
         # if there is a git-svn repo then lets assume it is the main Working copy
         # and use git in favor of svn 
-        (sha, historicRev) = GetGitSvnBranchPointRev()
+        (url, historicRev) = find_svn_branch_point_for_current_gitbranch()
         externalDefinitions = GetSvnExternalsFromGitSvnBridge()   
     elif IsSvnWc():
         # use svn WC info if available
