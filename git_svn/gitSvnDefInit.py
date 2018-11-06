@@ -170,8 +170,8 @@ def add_git_svn_ignore_paths(ignore_paths:list):
 
     # fail if the config key is already set
     cli = ["git", "config", "--local", "--get", "svn-remote.svn.ignore-paths"]
-    rc = subprocess.check_call(cli)
-    if rc != 0:
+    rc = subprocess.call(cli)
+    if rc == 0:
         raise Exception("the git-svn bridge already has a svn-remote.svn.ignore-paths config key")
 
     # set the config key
