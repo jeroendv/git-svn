@@ -50,6 +50,27 @@ def main():
     if not IsSvnWc():
         raise Exception("cwd is not an svn working copy: " + os.getcwd())
 
+    # check if svn is pointing to the proper branch
+    current_svn_branch_url = svn.GetQualifiedUrlForFolder("./")
+    (target_svn_branch_url, svn_rev) = find_svn_branch_point_for_current_gitbranch()
+    if current_svn_branch_url != target_svn_branch_url:
+        msg = """svnWC has wrong branch checked out!
+current: {}
+target: {}
+
+proposed fix 1:
+  1) run `git-svn-syncSvnWithGit` to switch the svn working copy to the proper branch.
+  2) run `git-svn-info` again afterwards
+
+proposed fix 2:
+  1) remove .svn/  folder
+  2) run `git-svn-syncSvnWithGit` to get a clean checkout of the proper branch
+  3) run `git-svn-info` again afterwards
+"""
+        print(msg.format(current_svn_branch_url, target_svn_branch_url), flush=True)
+        sys.exit(0)
+
+    # svnWC branch is correct, lets print the condensed log graph 
     svnBaseRev = int(GetSvnWCBaseRev())
     if args.verbose:
         svnDirtyFlag = " (*)" if IsSvnWcDirty() else ""
