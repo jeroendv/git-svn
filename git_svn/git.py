@@ -3,6 +3,7 @@ from git_svn.debug import DebugLog
 from git_svn import timeit
 from git_svn import svn
 import os
+import re
 
 @timeit
 def IsGitWc():
@@ -78,6 +79,22 @@ def GetGitSvnBranchPointRev():
     DebugLog.print("git-svn branchpoint (git-Sha - svn-Rev): " + gitSvnBranchPoint_gitSHA + " - " + gitSvnBranchPoint_SvnRev)
     return (gitSvnBranchPoint_gitSHA, gitSvnBranchPoint_SvnRev)
 
+def find_svn_branch_point_for_current_gitbranch():
+    """ find the svn branch point for the current git branch
+
+    return a (qualified_url:str, svn_rev:str) tuple
+    """
+    # find the git commit where HEAD branched of from the SVN branch
+    # i.e. find the most recent contained commit with a log entry as follows
+    # git-svn-id: http://vsrv-bele-svn1/svn/Software/Main/NMAPI/NMAPI_Main@72264 cfd94225-6148-4c34-bb2a-21ea3148c527
+    cmd =  ['git', 'log', '--grep=^git-svn-id:', '--date-order', '-1']
+    
+    DebugLog.print(str(cmd))
+    output = subprocess.check_output(cmd).decode()
+    m = re.search(r"git-svn-id: ([^@]*)@([0-9]*)", output)
+    url = m.group(1)
+    svn_rev = int(m.group(2))
+    return (url, svn_rev)
 
 def GetGitSvnUrl():
     output = subprocess.check_output(['git', 'config',  '--get', 'svn-remote.svn.url']).decode()

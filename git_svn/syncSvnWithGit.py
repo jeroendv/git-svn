@@ -73,28 +73,13 @@ def main():
 
     if IsSvnWc():
         current_svn_branch_url = svn.GetQualifiedUrlForFolder("./")
-        target_svn_branch_url = get_gitwc_svn_branch()
+        (target_svn_branch_url, svn_rev) = find_svn_branch_point_for_current_gitbranch()
         if current_svn_branch_url == target_svn_branch_url:
             updated_existing_svnWC()
             sys.exit(0)
         else:
             print("switch to new branch\ncurrent: {}\nnew: {}".format(current_svn_branch_url, target_svn_branch_url), flush=True)
-            switch_existing_svnWC(get_gitwc_svn_branch())
-
-    
-
-def find_svn_branch_point_for_current_gitbranch():
-    # find the git commit where HEAD branched of from the SVN branch
-    # i.e. find the most recent contained commit with a log entry as follows
-    # git-svn-id: http://vsrv-bele-svn1/svn/Software/Main/NMAPI/NMAPI_Main@72264 cfd94225-6148-4c34-bb2a-21ea3148c527
-    cmd =  ['git', 'log', '--grep=^git-svn-id:', '--date-order', '-1']
-    
-    DebugLog.print(str(cmd))
-    output = subprocess.check_output(cmd).decode()
-    m = re.search(r"git-svn-id: ([^@]*)@([0-9]*)", output)
-    url = m.group(1)
-    svn_rev = int(m.group(2))
-    return (url, svn_rev)
+            switch_existing_svnWC(target_svn_branch_url)
 
     
                    
@@ -160,21 +145,6 @@ def switch_existing_svnWC(switch_url_target):
         subprocess.check_call(cmd)
     
     sys.exit(0)
-
-
-def get_gitwc_svn_branch():
-    # find the git commit where HEAD branched of from the SVN branch
-    # i.e. find the most recent contained commit with a log entry as follows
-    # git-svn-id: http://vsrv-bele-svn1/svn/Software/Main/NMAPI/NMAPI_Main@72264 cfd94225-6148-4c34-bb2a-21ea3148c527
-    cmd =  ['git', 'log', '--grep=^git-svn-id:', '--date-order', '-1']
-    
-    DebugLog.print(str(cmd))
-    output = subprocess.check_output(cmd).decode()
-    m = re.search(r"git-svn-id: ([^@]*)@([0-9]*)", output)
-    url = m.group(1)
-    svn_rev = int(m.group(2))
-
-    return url
 
 
 
