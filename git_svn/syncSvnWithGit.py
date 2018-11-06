@@ -72,14 +72,18 @@ def main():
         sys.exit(0)
 
     if IsSvnWc():
-        updated_existing_svnWC()
-        sys.exit(0)
+        current_svn_branch_url = svn.GetQualifiedUrlForFolder("./")
+        target_svn_branch_url = get_gitwc_svn_branch()
+        if current_svn_branch_url == target_svn_branch_url:
+            updated_existing_svnWC()
+            sys.exit(0)
+        else:
+            print("switch to new branch\ncurrent: {}\nnew: {}".format(current_svn_branch_url, target_svn_branch_url), flush=True)
+            switch_existing_svnWC(get_gitwc_svn_branch())
+
     
 
-
-    
-                   
-def clean_svn_checkout():
+def find_svn_branch_point_for_current_gitbranch():
     # find the git commit where HEAD branched of from the SVN branch
     # i.e. find the most recent contained commit with a log entry as follows
     # git-svn-id: http://vsrv-bele-svn1/svn/Software/Main/NMAPI/NMAPI_Main@72264 cfd94225-6148-4c34-bb2a-21ea3148c527
@@ -90,7 +94,13 @@ def clean_svn_checkout():
     m = re.search(r"git-svn-id: ([^@]*)@([0-9]*)", output)
     url = m.group(1)
     svn_rev = int(m.group(2))
+    return (url, svn_rev)
 
+    
+                   
+def clean_svn_checkout():
+    (url, svn_rev) = find_svn_branch_point_for_current_gitbranch()
+    
     
     cmd = ['svn', 'checkout',
         '--force',
@@ -111,17 +121,17 @@ def clean_svn_checkout():
 
 def updated_existing_svnWC():
     # find the git commit where HEAD branched of from the SVN branch
-    (sha,gitSvnBranchPoint_SvnRev) = GetGitSvnBranchPointRev()
+    (url, svn_rev) = find_svn_branch_point_for_current_gitbranch()
 
     # info logging
     baseRev = GetSvnWCBaseRev()
-    if int(baseRev) < int(gitSvnBranchPoint_SvnRev):
-        print("updating svn from " + baseRev + " to : " + gitSvnBranchPoint_SvnRev)
-    elif int(baseRev) == int(gitSvnBranchPoint_SvnRev):
+    if int(baseRev) < int(svn_rev):
+        print("updating svn from " + baseRev + " to : " + svn_rev)
+    elif int(baseRev) == int(svn_rev):
         print("svn WC is up to date at rev: " ,baseRev)
     else:
-        assert int(baseRev) > int(gitSvnBranchPoint_SvnRev)
-        print("downdating svn from " + baseRev + "to : " + gitSvnBranchPoint_SvnRev)
+        assert int(baseRev) > int(svn_rev)
+        print("downdating svn from " + baseRev + "to : " + svn_rev)
 
     # update svn to the relevant revision
     if args.dry_run:
@@ -131,7 +141,41 @@ def updated_existing_svnWC():
             ,'--force'  # handle unversioned obstructions as changes
             , '--accept', 'working' # resolve conflict 
             , '--adds-as-modification' # prevent tree conflicts
-            , '-r', gitSvnBranchPoint_SvnRev
+            , '-r', svn_rev
     ]
     DebugLog.print(str(cmd))    
     subprocess.check_call(cmd)
+
+def switch_existing_svnWC(switch_url_target):
+    (url, svn_rev) = find_svn_branch_point_for_current_gitbranch()
+    
+    
+    cmd = ['svn', 'switch',
+        '--force',
+        url + "@" + str(svn_rev),
+        '.']
+
+    DebugLog.print(str(cmd))
+    if not args.dry_run:
+        subprocess.check_call(cmd)
+    
+    sys.exit(0)
+
+
+def get_gitwc_svn_branch():
+    # find the git commit where HEAD branched of from the SVN branch
+    # i.e. find the most recent contained commit with a log entry as follows
+    # git-svn-id: http://vsrv-bele-svn1/svn/Software/Main/NMAPI/NMAPI_Main@72264 cfd94225-6148-4c34-bb2a-21ea3148c527
+    cmd =  ['git', 'log', '--grep=^git-svn-id:', '--date-order', '-1']
+    
+    DebugLog.print(str(cmd))
+    output = subprocess.check_output(cmd).decode()
+    m = re.search(r"git-svn-id: ([^@]*)@([0-9]*)", output)
+    url = m.group(1)
+    svn_rev = int(m.group(2))
+
+    return url
+
+
+
+
