@@ -71,7 +71,7 @@ proposed fix 2:
         sys.exit(0)
 
     # svnWC branch is correct, lets print the condensed log graph 
-    svnBaseRev = int(GetSvnWCBaseRev())
+    svnBaseRev = GetSvnWCBaseRev()
     if args.verbose:
         svnDirtyFlag = " (*)" if IsSvnWcDirty() else ""
     else:

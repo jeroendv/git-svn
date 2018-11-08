@@ -382,10 +382,10 @@ def checkoutSvnExternal(svnExternal, discard_local_changes=False):
             # this the SvnNodetype enum expand?
             assert false
 @timeit
-def GetSvnWCBaseRev():
+def GetSvnWCBaseRev() -> int:
     xmlStr = subprocess.check_output(['svn', 'info' ,'--xml', '-r',  'BASE']).decode()
     xmlEl = ET.fromstring(xmlStr)
-    return xmlEl.find('entry').get('revision')
+    return int(xmlEl.find('entry').get('revision'))
 
 def GetSvnRepoUrl():
     xmlStr = subprocess.check_output(['svn', 'info',  '--xml', '']).decode()

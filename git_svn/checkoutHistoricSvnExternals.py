@@ -47,7 +47,7 @@ def parse_cli_args():
     
     return args
 
-def DeriveHistoricSvnExternals(historicRev, svnExternal):
+def DeriveHistoricSvnExternals(historicRev:int, svnExternal):
     """Derive historic SvnExternal.
 
     a historic svn external has the operative and peg revision set to the

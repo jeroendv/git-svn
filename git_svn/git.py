@@ -82,7 +82,7 @@ def GetGitSvnBranchPointRev():
 def find_svn_branch_point_for_current_gitbranch():
     """ find the svn branch point for the current git branch
 
-    return a (qualified_url:str, svn_rev:str) tuple
+    return a (qualified_url:str, svn_rev:int) tuple
     """
     # find the git commit where HEAD branched of from the SVN branch
     # i.e. find the most recent contained commit with a log entry as follows

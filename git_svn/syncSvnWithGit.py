@@ -110,13 +110,13 @@ def updated_existing_svnWC():
 
     # info logging
     baseRev = GetSvnWCBaseRev()
-    if int(baseRev) < int(svn_rev):
-        print("updating svn from " + baseRev + " to : " + svn_rev)
-    elif int(baseRev) == int(svn_rev):
-        print("svn WC is up to date at rev: " ,baseRev)
+    if baseRev < svn_rev:
+        print("updating svn from " + baseRev + " to : " + str(svn_rev))
+    elif baseRev == svn_rev:
+        print("svn WC is up to date at rev: ", str(baseRev))
     else:
-        assert int(baseRev) > int(svn_rev)
-        print("downdating svn from " + baseRev + "to : " + svn_rev)
+        assert baseRev > svn_rev
+        print("downdating svn from " + str(baseRev) + "to : " + str(svn_rev))
 
     # update svn to the relevant revision
     if args.dry_run:
@@ -126,7 +126,7 @@ def updated_existing_svnWC():
             ,'--force'  # handle unversioned obstructions as changes
             , '--accept', 'working' # resolve conflict 
             , '--adds-as-modification' # prevent tree conflicts
-            , '-r', svn_rev
+            , '-r', str(svn_rev)
     ]
     DebugLog.print(str(cmd))    
     subprocess.check_call(cmd)
