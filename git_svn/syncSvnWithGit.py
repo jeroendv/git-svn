@@ -111,7 +111,7 @@ def updated_existing_svnWC():
     # info logging
     baseRev = GetSvnWCBaseRev()
     if baseRev < svn_rev:
-        print("updating svn from " + baseRev + " to : " + str(svn_rev))
+        print("updating svn from " + str(baseRev) + " to : " + str(svn_rev))
     elif baseRev == svn_rev:
         print("svn WC is up to date at rev: ", str(baseRev))
     else:
