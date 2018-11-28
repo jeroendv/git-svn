@@ -37,7 +37,8 @@ def parse_cli_args():
                     help="svn password")
 
     parser.add_argument('--ignore-externals',
-                        help="ignore the svn externals during svn checkout/update/switch")
+                        help="ignore the svn externals during svn checkout/update/switch",
+                        action="store_true")
 
     parser.add_argument("-N", "--dry-run",
                         help="Do not perform any actions, only simulate them.",
