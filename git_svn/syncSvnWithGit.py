@@ -35,7 +35,9 @@ def parse_cli_args():
     
     parser.add_argument('--password',
                     help="svn password")
-                   
+
+    parser.add_argument('--ignore-externals',
+                        help="ignore the svn externals during svn checkout/update/switch")
 
     parser.add_argument("-N", "--dry-run",
                         help="Do not perform any actions, only simulate them.",
@@ -96,6 +98,9 @@ def clean_svn_checkout():
 
     if args.password is not None:
         cmd += ['--password', args.password]
+
+    if args.ignore_externals is not None:
+        cmd += ['--ignore-externals']
         
     DebugLog.print(str(cmd))
     if not args.dry_run:
@@ -118,17 +123,21 @@ def updated_existing_svnWC():
         assert baseRev > svn_rev
         print("downdating svn from " + str(baseRev) + "to : " + str(svn_rev))
 
-    # update svn to the relevant revision
-    if args.dry_run:
-        sys.exit(0)
-
     cmd = [ 'svn', 'up' 
             ,'--force'  # handle unversioned obstructions as changes
             , '--accept', 'working' # resolve conflict 
             , '--adds-as-modification' # prevent tree conflicts
             , '-r', str(svn_rev)
     ]
-    DebugLog.print(str(cmd))    
+
+    if args.ignore_externals is not None:
+        cmd += ['--ignore-externals']
+    DebugLog.print(str(cmd))
+
+        # update svn to the relevant revision
+    if args.dry_run:
+        sys.exit(0)
+
     subprocess.check_call(cmd)
 
 def switch_existing_svnWC(switch_url_target):
@@ -139,6 +148,9 @@ def switch_existing_svnWC(switch_url_target):
         '--force',
         url + "@" + str(svn_rev),
         '.']
+    
+    if args.ignore_externals is not None:
+        cmd += ['--ignore-externals']
 
     DebugLog.print(str(cmd))
     if not args.dry_run:
