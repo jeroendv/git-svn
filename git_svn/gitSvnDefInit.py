@@ -103,7 +103,7 @@ def git_svn_init(url):
     assert currentUrl == url
     print("git-svn bridge is already initalized for: " + url, flush=True)
 
-def add_git_svn_branch_configuration(svn_branch_path):
+def add_git_svn_branch_configuration(svn_branch_path:str):
     """idenpotent git-svn branch configuration """
     branch_name = os.path.basename(svn_branch_path)
 
@@ -181,14 +181,14 @@ def add_git_svn_ignore_paths(ignore_paths:list):
     subprocess.check_output(cli)
 
 
-def branch_exists(git_ref):
+def branch_exists(git_ref:str) -> bool:
     """check if a certain branch exists"""
     rc = subprocess.call(['git', 'show-ref', '--quiet', '--verify', git_ref])
     return rc == 0
 
 
 
-def GitSvnUrl():
+def GitSvnUrl() -> str :
     try: 
         output = subprocess.check_output(['git','config', '--local', '--get', 'svn-remote.svn.url']).decode()
 
