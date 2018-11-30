@@ -17,7 +17,16 @@ args = []
 def parse_cli_arg():
     """parse the script input arguments"""
     parser = argparse.ArgumentParser(description=
-    "initialize a git-svn bridge in an existing git working copy")
+    "initialize a git-svn bridge in an existing git checkout from a .git-svn.yml file")
+
+    parser.add_argument("git_remote",
+                    help="git remote tracking the git-svn branches",
+                    nargs="?",
+                    default="origin")
+
+    parser.add_argument("-f", "--force",
+                    help="force sync the git-svn tracking refs with git_remote",
+                    action="store_true")
 
     parser.add_argument("-d", "--debug",
                     help="enable debug output",
@@ -41,6 +50,7 @@ def parse_cli_arg():
 
 
 def main():
+    global args
     args = parse_cli_arg()
 
     # sanity checking
@@ -62,7 +72,7 @@ def main():
     # add config key and git branch ref for each branch
     for branchpath in git_svn_def.branches:
         add_git_svn_branch_configuration(branchpath)
-        add_git_svn_branch_reference(branchpath)
+        set_git_svn_branch_reference(branchpath, args.git_remote)
 
     # add the ignore-paths config key
     add_git_svn_ignore_paths(git_svn_def.ignore_paths)
@@ -71,8 +81,6 @@ def main():
     subprocess.call(['git', 'svn', 'info'])
 
 
-        
-        
 
 
 def git_svn_init(url):
@@ -137,18 +145,12 @@ the same branch reference can't track a second svn path: {}""".format("", svn_br
         "--add", "svn-remote.svn.fetch",  "%s:refs/remotes/git-svn/%s" % (svn_branch_path, branch_name)]
     subprocess.check_output(cli_cmd)
 
-def add_git_svn_branch_reference(svn_branch_path, remote = "origin"):
+def set_git_svn_branch_reference(svn_branch_path:str, git_remote:str):
     """idempotent git-svn branch reference creation"""
     branch_name = os.path.basename(svn_branch_path)
 
     svn_ref = "refs/remotes/git-svn/{}".format(branch_name)
-    git_ref = "refs/remotes/{}/{}".format(remote, branch_name)
-
-    if branch_exists(svn_ref):
-        # the branch reference alreasy exists, nothing to do :-)
-        print("git-svn branch reference already exists for: " + svn_branch_path, flush=True)
-
-        return 
+    git_ref = "refs/remotes/{}/{}".format(git_remote, branch_name)
 
     # check if the git_ref exists
     if not branch_exists(git_ref):
@@ -157,6 +159,16 @@ Source branch reference does not exists: {}
 """
         msg = msg.format(svn_ref, git_ref)
         raise Exception(msg)
+
+    if branch_exists(svn_ref) and not args.force:
+        # the branch reference alreasy exists, nothing to do :-)
+        print("git-svn branch reference already exists for: " + svn_branch_path, flush=True)
+
+        return 
+
+
+    assert (not branch_exists(svn_ref) or           # no git-svn tracking branch exists, yet
+        ( branch_exists(svn_ref) and args.force))   # or the git-svn tracking branch is forcibly updated
 
     # create the svn branch ref based on the git branch ref
     print("Adding git-svn branch reference for: " + svn_branch_path, flush=True)
