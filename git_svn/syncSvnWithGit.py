@@ -100,7 +100,7 @@ def clean_svn_checkout():
     if args.password is not None:
         cmd += ['--password', args.password]
 
-    if args.ignore_externals is not None:
+    if args.ignore_externals:
         cmd += ['--ignore-externals']
         
     DebugLog.print(str(cmd))
@@ -131,7 +131,7 @@ def updated_existing_svnWC():
             , '-r', str(svn_rev)
     ]
 
-    if args.ignore_externals is not None:
+    if args.ignore_externals:
         cmd += ['--ignore-externals']
     DebugLog.print(str(cmd))
 
@@ -150,7 +150,7 @@ def switch_existing_svnWC(switch_url_target):
         url + "@" + str(svn_rev),
         '.']
     
-    if args.ignore_externals is not None:
+    if args.ignore_externals:
         cmd += ['--ignore-externals']
 
     DebugLog.print(str(cmd))
