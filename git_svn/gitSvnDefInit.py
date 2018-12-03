@@ -17,7 +17,7 @@ args = []
 def parse_cli_arg():
     """parse the script input arguments"""
     parser = argparse.ArgumentParser(description=
-    "initialize a git-svn bridge in an existing git checkout from a .git-svn.yml file")
+    "initialize a git-svn bridge in an existing git checkout from a .gitsvn.yml file")
 
     parser.add_argument("git_remote",
                     help="git remote tracking the git-svn branches",
