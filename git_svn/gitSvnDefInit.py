@@ -169,7 +169,8 @@ def add_git_svn_ignore_paths(ignore_paths:list):
     """
 
     # nothing to do is nothing is ignored
-    if len(ignore_paths) == 0:
+    if not ignore_paths:
+        assert len(ignore_paths) == 0
         return
 
     # fail if the config key is already set
