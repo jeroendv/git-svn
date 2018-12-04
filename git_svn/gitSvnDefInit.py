@@ -168,7 +168,7 @@ def add_git_svn_ignore_paths(ignore_paths:list):
     """add the ignore_paths to the git-svn bridge config
     """
 
-    # nothing to do is nothing is ignored
+    # nothing to do if nothing is ignored
     if not ignore_paths:
         assert len(ignore_paths) == 0
         return
