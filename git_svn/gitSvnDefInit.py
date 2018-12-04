@@ -180,6 +180,7 @@ def add_git_svn_ignore_paths(ignore_paths:list):
 
     # set the config key
     configStr = "(" + "|".join(ignore_paths) + ")"
+    assert configStr != "()"
     cli = ["git", "config", "--local", 
         "svn-remote.svn.ignore-paths", configStr]
     subprocess.check_output(cli)
