@@ -43,6 +43,10 @@ def parse_cli_args():
     parser.add_argument("-N", "--dry-run",
                         help="Do not perform any actions, only simulate them.",
                         action="store_true")
+    
+    parser.add_argument("--ci",
+                        help="actively perform an `svn cleanup` to break locks left by a prev ci build job.",
+                        action="store_true")
 
     args = parser.parse_args()
 
@@ -75,6 +79,9 @@ def main():
         sys.exit(0)
 
     if IsSvnWc():
+        if args.ci:
+            svn_cleanup()
+
         current_svn_branch_url = svn.GetQualifiedUrlForFolder("./")
         (target_svn_branch_url, svn_rev) = find_svn_branch_point_for_current_gitbranch()
         if current_svn_branch_url == target_svn_branch_url:
@@ -85,6 +92,12 @@ def main():
             switch_existing_svnWC(target_svn_branch_url)
 
     
+def svn_cleanup():
+    cmd = ['svn', 'cleanup', '--include-externals']
+
+    DebugLog.print(str(cmd))
+    if not args.dry_run:
+        subprocess.check_call(cmd)
                    
 def clean_svn_checkout():
     (url, svn_rev) = find_svn_branch_point_for_current_gitbranch()
