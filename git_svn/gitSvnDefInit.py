@@ -108,17 +108,15 @@ def git_svn_init(url):
         # not a git-svn bridge yet, so initialize it
         cli_cmd =["git", "svn",  "init", url]
 
-        # remove the nonsensical auto generated svn.remote.svn.fetch config keys
-        cli_cmd2 = ["git", "config", "--local", "--unset-all", "svn-remote.svn.fetch"]
-
         DebugLog.print(str(cli_cmd))
-        DebugLog.print(str(cli_cmd2))
-
         if args.dry_run:
             return
         
-        output1 = subprocess.check_output(cli_cmd).decode()
-        output2 = subprocess.check_output(cli_cmd2).decode()
+        output = subprocess.check_output(cli_cmd).decode()
+
+        # remove the nonsensical auto generated svn.remote.svn.fetch config keys
+        git_unsetall_config_key(svn-remote.svn.fetch)
+
         return
 
     
@@ -158,17 +156,9 @@ Can't add second tracking branch reference: {}""".format(svn_git_fetchMap[svn_br
         raise Exception("""git branch refernce is already tracking: {existing_svn_path}
 the same branch reference can't track a second svn path: {}""".format("", svn_branch_path))
 
-
     # add the svn-remote.svn.fetch config key as it does not yet exists
-    print("adding svn-remote.svn.fetch config key to track: " + svn_branch_path, flush=True)
-    cli_cmd = ['git',  "config", "--local",
-        "--add", "svn-remote.svn.fetch",  "%s:refs/remotes/git-svn/%s" % (svn_branch_path, branch_name)]
+    git_add_config_key("svn-remote.svn.fetch", "%s:refs/remotes/git-svn/%s" % (svn_branch_path, branch_name))
 
-    DebugLog.print(str(cli_cmd))
-    if args.dry_run:
-        return
-
-    subprocess.check_output(cli_cmd)
 
 def set_git_svn_branch_reference(svn_branch_path:str, git_remote:str):
     """idempotent git-svn branch reference creation"""
@@ -262,12 +252,7 @@ def add_git_svn_ignore_paths(ignore_paths:list):
         elif args.force:
             # assume the user known what he is doing and delete the config key
             assert ignore_paths_value is not None
-            cli_cmd = ["git", "config", "--local", "--unset","svn-remote.svn.ignore-paths"]
-            DebugLog.print(str(cli_cmd))
-            if args.dry_run:
-                return
-            output = subprocess.check_output(cli_cmd).decode()
-            DebugLog.print(output)
+            git_unset_config_key("svn-remote.svn.ignore-paths")
             return
         
         # BUG: all cases should have been handled already!
@@ -282,12 +267,7 @@ def add_git_svn_ignore_paths(ignore_paths:list):
 
     if ignore_paths_value is None:
         # git setting is not yet set, so do so now   
-        cli_cmd = ["git", "config", "--local", 
-            "svn-remote.svn.ignore-paths", desired_ignore_paths_value]
-        DebugLog.print(str(cli_cmd))
-        if args.dry_run:
-            return
-        subprocess.check_output(cli_cmd)
+        git_set_config_key("svn-remote.svn.ignore-paths", desired_ignore_paths_value)
         return
     elif ignore_paths_value == desired_ignore_paths_value:
         # Nothing to do: ignore-path is already configured!
@@ -300,13 +280,7 @@ def add_git_svn_ignore_paths(ignore_paths:list):
         raise Exception(msg.format(ignore_paths_value, desired_ignore_paths_value))
     elif args.force:
         assert ignore_paths_value != desired_ignore_paths_value
-        # assume the user knows what he is doing, update the key!
-        cli_cmd = ["git", "config", "--local", 
-            "svn-remote.svn.ignore-paths", desired_ignore_paths_value]
-        DebugLog.print(str(cli_cmd))
-        if args.dry_run:
-            return
-        subprocess.check_output(cli_cmd)
+        git_set_config_key("svn-remote.svn.ignore-paths", desired_ignore_paths_value)
         return
 
         
@@ -316,7 +290,7 @@ def add_git_svn_ignore_paths(ignore_paths:list):
 
 
 def git_get_config_key(key:str) -> (None, str):
-    """fetch a local git configuration key value
+    """get a local git configuration key value
     return None if not set
     return value otherwise (could be the empty string)"""
 
@@ -326,6 +300,73 @@ def git_get_config_key(key:str) -> (None, str):
         output = output.splitlines()
         assert len(output) == 1
         return output[0]
+
+    except subprocess.CalledProcessError as e:
+        assert e.returncode == 1 # a return code other then 1 means there is a bug!
+        return None
+
+def git_set_config_key(key:str, value:str):
+    """set a local git configuration key value"""
+    global args 
+    try:
+        print("setting config key {} = {}".Format(key,value)) 
+
+        cli = ["git", "config", "--local", key, value]
+        DebugLog.print(str(cli))
+        if args.dry_run:
+            return
+        output = subprocess.check_output(cli).decode()
+        return
+
+    except subprocess.CalledProcessError as e:
+        assert e.returncode == 1 # a return code other then 1 means there is a bug!
+        return None
+
+def git_add_config_key(key:str, value:str):
+    """add a local git configuration key value"""
+    global args
+    try:
+        print("adding config key {} = {}".Format(key,value)) 
+
+        cli = ["git", "config", "--local", "--add", key, value]
+        DebugLog.print(str(cli))
+        if args.dry_run:
+            return
+        output = subprocess.check_output(cli).decode()
+        return
+
+    except subprocess.CalledProcessError as e:
+        assert e.returncode == 1 # a return code other then 1 means there is a bug!
+        return None
+
+def git_unset_config_key(key:str):
+    """unset/delete a single key from a local git configuration """
+
+    try:
+        print("Unset/delete config key {}".Format(key)) 
+
+        cli = ["git", "config", "--local", "--unset", key]
+        DebugLog.print(str(cli))
+        if args.dry_run:
+            return
+        output = subprocess.check_output(cli).decode()
+        return
+
+    except subprocess.CalledProcessError as e:
+        assert e.returncode == 1 # a return code other then 1 means there is a bug!
+        return None
+
+def git_unsetall_config_key(key:str):
+    """unset/delete all given keys from a local git configuration """
+    global args
+    try:
+        print("Unset/delete all config keys {}".Format(key)) 
+        cli = ["git", "config", "--local", "--unset-all", key]
+        DebugLog.print(str(cli))
+        if args.dry_run:
+            return
+        output = subprocess.check_output(cli).decode()
+        return
 
     except subprocess.CalledProcessError as e:
         assert e.returncode == 1 # a return code other then 1 means there is a bug!
