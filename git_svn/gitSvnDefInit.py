@@ -127,7 +127,7 @@ def git_svn_init(url):
     
     # this git repo is already initialized correctly, nothing to do
     assert currentUrl == url
-    print("git-svn bridge is already initalized for: " + url, flush=True)
+    DebugLog.print("git-svn bridge is already initalized for: " + url)
 
 def add_git_svn_branch_configuration(svn_branch_path:str):
     """idenpotent git-svn branch configuration """
@@ -141,7 +141,7 @@ def add_git_svn_branch_configuration(svn_branch_path:str):
 
     if svn_branch_path in svn_git_fetchMap and git_ref == svn_git_fetchMap[svn_branch_path]:
         # nothign to do this config key already exists
-        print("svn-remote.svn.fetch config key already exists for: " + svn_branch_path, flush=True)
+        DebugLog.print("svn-remote.svn.fetch config key already exists for: " + svn_branch_path)
         return 
     
     if branch_name in svn_git_fetchMap:
