@@ -178,33 +178,67 @@ def set_git_svn_branch_reference(svn_branch_path:str, git_remote:str):
     svn_ref = "refs/remotes/git-svn/{}".format(branch_name)
     git_ref = "refs/remotes/{}/{}".format(git_remote, branch_name)
 
+    svn_ref_branch_hash = branch_exists(svn_ref)
+    git_ref_branch_hash = branch_exists(git_ref)
+
     # check if the git_ref exists
-    if not branch_exists(git_ref):
+    if not git_ref_branch_hash:
         msg = """Failed to add git-svn tracking branch reference: {}
 Source branch reference does not exists: {}
 """
         msg = msg.format(svn_ref, git_ref)
         raise Exception(msg)
+    
+    elif not svn_ref_branch_hash:
+        assert(git_ref_branch_hash)
+        # create the svn branch ref based on the git branch ref
+        print("Adding git-svn branch reference for: " + svn_branch_path, flush=True)
+        cli_cmd = ['git', 'update-ref', svn_ref, git_ref]
 
-    if branch_exists(svn_ref) and not args.force:
-        # the branch reference alreasy exists, nothing to do :-)
-        print("git-svn branch reference already exists for: " + svn_branch_path, flush=True)
-
-        return 
-
-
-    assert (not branch_exists(svn_ref) or           # no git-svn tracking branch exists, yet
-        ( branch_exists(svn_ref) and args.force))   # or the git-svn tracking branch is forcibly updated
-
-    # create the svn branch ref based on the git branch ref
-    print("Adding git-svn branch reference for: " + svn_branch_path, flush=True)
-    cli_cmd = ['git', 'update-ref', svn_ref, git_ref]
-
-    DebugLog.print(str(cli_cmd))
-    if args.dry_run:
+        DebugLog.print(str(cli_cmd))
+        if args.dry_run:
+            return
+        output = subprocess.check_output(cli_cmd).decode()
+        DebugLog.print(output)
         return
-    output = subprocess.check_output(cli_cmd).decode()
-    DebugLog.print(output)
+
+
+    elif svn_ref_branch_hash == git_ref_branch_hash:
+        # nothing to do: both branches exist and are the same
+        assert svn_ref_branch_hash
+        assert git_ref_branch_hash
+        return
+
+    else:  
+        # both branches exists but are different
+        assert svn_ref_branch_hash
+        assert git_ref_branch_hash
+        assert svn_ref_branch_hash != git_ref_branch_hash
+        
+        if not args.force:
+            # BAIL-OUT: possible loss of data
+            msg="git-svn branch reference already exists for: {}\nUse --force if you know what you are doing (remember you may always tag the branch if unsure!)" 
+            raise Exception(msg.format(svn_branch_path))
+        else:
+            assert args.force
+            # assume the user know what he is doing
+            # create the svn branch ref based on the git branch ref
+            print("moving git-svn branch reference for: " + svn_branch_path, flush=True)
+            cli_cmd = ['git', 'update-ref', svn_ref, git_ref]
+
+            DebugLog.print(str(cli_cmd))
+            if args.dry_run:
+                return
+            output = subprocess.check_output(cli_cmd).decode()
+            DebugLog.print(output)
+            return
+    
+    # BUG: all possible cases should have been handled.
+    # one should not get here!
+    assert False
+    
+
+
 
 def add_git_svn_ignore_paths(ignore_paths:list):
     """add the ignore_paths to the git-svn bridge config
@@ -233,11 +267,16 @@ def add_git_svn_ignore_paths(ignore_paths:list):
     subprocess.check_output(cli_cmd)
 
 
-def branch_exists(git_ref:str) -> bool:
-    """check if a certain branch exists"""
+def branch_exists(git_ref:str) -> str:
+    """check if a certain branch exists
+    returns "" if it does not exists (which evaluates to False)
+    return the hash value if it does exists (which evaluates to True)"""
     # this can be executed even in dry_run mode since it doesn't make any changes
-    rc = subprocess.call(['git', 'show-ref', '--quiet', '--verify', git_ref])
-    return rc == 0
+    try:
+        hash_value = subprocess.check_output(['git', 'show-ref', '--hash', '--verify', git_ref]).decode()
+        return hash_value
+    except subprocess.CalledProcessError as e:
+        return "" 
 
 
 
