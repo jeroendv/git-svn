@@ -100,7 +100,7 @@ def git_svn_init(url):
     initialization will fail if the git repo has a git-svn bridge for another svn repo.
     """
     global args
-    currentUrl = GitSvnUrl()
+    currentUrl = git_get_config_key("svn-remote.svn.url")
     
     if currentUrl is None:
         print("initializing the git-svn bridge for: " + url, flush=True)
@@ -267,6 +267,23 @@ def add_git_svn_ignore_paths(ignore_paths:list):
     subprocess.check_output(cli_cmd)
 
 
+def git_get_config_key(key:str) -> (None, str):
+    """fetch a local git configuration key value
+    return None if not set
+    return value otherwise (could be the empty string)"""
+
+    try:
+        cli = ["git", "config", "--local", "--get", key]
+        output = subprocess.check_output(cli).decode()
+        output = output.splitlines()
+        assert len(output) == 1
+        return output[0]
+
+    except subprocess.CalledProcessError as e:
+        assert e.returncode == 1 # a return code other then 1 means there is a bug!
+        return None
+
+
 def branch_exists(git_ref:str) -> str:
     """check if a certain branch exists
     returns "" if it does not exists (which evaluates to False)
@@ -278,21 +295,7 @@ def branch_exists(git_ref:str) -> str:
     except subprocess.CalledProcessError as e:
         return "" 
 
-
-
-def GitSvnUrl() -> str :
-    try: 
-        # this can be executed even in dry_run mode since it doesn't make any changes
-        output = subprocess.check_output(['git','config', '--local', '--get', 'svn-remote.svn.url']).decode()
-
-        # these should be only 1 output line containing the url of the svn server
-        output = output.splitlines()
-        assert len(output) == 1
-
-        return output[0]
-    except subprocess.CalledProcessError as e:
-        assert e.returncode == 1 # a return code other then 1 means there is a bug!
-        return None
+    
 
 def GitSvnConfigFetchDef():
     try:
