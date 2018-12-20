@@ -207,8 +207,8 @@ Source branch reference does not exists: {}
         
         if not args.force:
             # BAIL-OUT: possible loss of data
-            msg="git-svn branch reference already exists for: {}\nUse --force if you know what you are doing (remember you may always tag the branch if unsure!)" 
-            raise Exception(msg.format(svn_branch_path))
+            msg="the following git-svn branch reference already exists: {}\nUse --force to move it to match {} (remember you cay always tag the branch if unsure!)" 
+            raise Exception(msg.format(svn_ref, git_ref))
         else:
             assert args.force
             # assume the user know what he is doing
