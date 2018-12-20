@@ -28,6 +28,10 @@ def parse_cli_arg():
                     help="force sync the git-svn tracking refs with git_remote",
                     action="store_true")
 
+    parser.add_argument("-N", "--dry-run",
+                        help="Do not perform any actions, only simulate them.",
+                        action="store_true")
+
     parser.add_argument("-d", "--debug",
                     help="enable debug output",
                     action="store_true")
@@ -78,7 +82,11 @@ def main():
     add_git_svn_ignore_paths(git_svn_def.ignore_paths)
 
     # trick git-svn into rebuilding the rev_map by querying the svn info
-    subprocess.call(['git', 'svn', 'info'])
+    cli_cmd = ['git', 'svn', 'info']
+    DebugLog.print(str(cli_cmd))
+    if args.dry_run:
+        return
+    subprocess.call(cli_cmd)
 
 
 
@@ -91,6 +99,7 @@ def git_svn_init(url):
 
     initialization will fail if the git repo has a git-svn bridge for another svn repo.
     """
+    global args
     currentUrl = GitSvnUrl()
     
     if currentUrl is None:
@@ -98,11 +107,20 @@ def git_svn_init(url):
 
         # not a git-svn bridge yet, so initialize it
         cli_cmd =["git", "svn",  "init", url]
-        output = subprocess.check_output(cli_cmd).decode()
-        
+
         # remove the nonsensical auto generated svn.remote.svn.fetch config keys
-        subprocess.check_output(["git", "config", "--local", "--unset-all", "svn-remote.svn.fetch"])
-        return 
+        cli_cmd2 = ["git", "config", "--local", "--unset-all", "svn-remote.svn.fetch"]
+
+        DebugLog.print(str(cli_cmd))
+        DebugLog.print(str(cli_cmd2))
+
+        if args.dry_run:
+            return
+        
+        output1 = subprocess.check_output(cli_cmd).decode()
+        output2 = subprocess.check_output(cli_cmd2).decode()
+        return
+
     
     if currentUrl != url:
         raise Exception("this git repo already has a git-svn bridge setup for a different svn repo: " + currentUrl)
@@ -113,6 +131,8 @@ def git_svn_init(url):
 
 def add_git_svn_branch_configuration(svn_branch_path:str):
     """idenpotent git-svn branch configuration """
+    global args
+
     branch_name = os.path.basename(svn_branch_path)
 
     git_ref = "refs/remotes/git-svn/{}".format(branch_name)
@@ -143,10 +163,16 @@ the same branch reference can't track a second svn path: {}""".format("", svn_br
     print("adding svn-remote.svn.fetch config key to track: " + svn_branch_path, flush=True)
     cli_cmd = ['git',  "config", "--local",
         "--add", "svn-remote.svn.fetch",  "%s:refs/remotes/git-svn/%s" % (svn_branch_path, branch_name)]
+
+    DebugLog.print(str(cli_cmd))
+    if args.dry_run:
+        return
+
     subprocess.check_output(cli_cmd)
 
 def set_git_svn_branch_reference(svn_branch_path:str, git_remote:str):
     """idempotent git-svn branch reference creation"""
+    global args
     branch_name = os.path.basename(svn_branch_path)
 
     svn_ref = "refs/remotes/git-svn/{}".format(branch_name)
@@ -173,12 +199,17 @@ Source branch reference does not exists: {}
     # create the svn branch ref based on the git branch ref
     print("Adding git-svn branch reference for: " + svn_branch_path, flush=True)
     cli_cmd = ['git', 'update-ref', svn_ref, git_ref]
+
+    DebugLog.print(str(cli_cmd))
+    if args.dry_run:
+        return
     output = subprocess.check_output(cli_cmd).decode()
     DebugLog.print(output)
 
 def add_git_svn_ignore_paths(ignore_paths:list):
     """add the ignore_paths to the git-svn bridge config
     """
+    global args
 
     # nothing to do if nothing is ignored
     if not ignore_paths:
@@ -194,13 +225,17 @@ def add_git_svn_ignore_paths(ignore_paths:list):
     # set the config key
     configStr = "(" + "|".join(ignore_paths) + ")"
     assert configStr != "()"
-    cli = ["git", "config", "--local", 
+    cli_cmd = ["git", "config", "--local", 
         "svn-remote.svn.ignore-paths", configStr]
-    subprocess.check_output(cli)
+    DebugLog.print(str(cli_cmd))
+    if args.dry_run:
+        return
+    subprocess.check_output(cli_cmd)
 
 
 def branch_exists(git_ref:str) -> bool:
     """check if a certain branch exists"""
+    # this can be executed even in dry_run mode since it doesn't make any changes
     rc = subprocess.call(['git', 'show-ref', '--quiet', '--verify', git_ref])
     return rc == 0
 
@@ -208,6 +243,7 @@ def branch_exists(git_ref:str) -> bool:
 
 def GitSvnUrl() -> str :
     try: 
+        # this can be executed even in dry_run mode since it doesn't make any changes
         output = subprocess.check_output(['git','config', '--local', '--get', 'svn-remote.svn.url']).decode()
 
         # these should be only 1 output line containing the url of the svn server
@@ -221,6 +257,7 @@ def GitSvnUrl() -> str :
 
 def GitSvnConfigFetchDef():
     try:
+        # this can be executed even in dry_run mode since it doesn't make any changes
         output = subprocess.check_output(['git', 'config', '--local', '--get-all', 'svn-remote.svn.fetch']).decode()
 
         git_svn_map = {}
