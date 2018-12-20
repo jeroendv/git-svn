@@ -392,7 +392,7 @@ class GitSvnDef(object):
     def __init__(self, url, branches, ignore_paths):
         self._url = url
         self._branches = set(branches)
-        self._ignore_paths = set(ignore_paths)
+        self._ignore_paths = ignore_paths
 
     @classmethod
     def parseConfig(cls, config:str):
