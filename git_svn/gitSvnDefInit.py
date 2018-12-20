@@ -245,26 +245,74 @@ def add_git_svn_ignore_paths(ignore_paths:list):
     """
     global args
 
-    # nothing to do if nothing is ignored
+    ignore_paths_value = git_get_config_key("svn-remote.svn.ignore-paths")
+
+        
     if not ignore_paths:
-        assert len(ignore_paths) == 0
+        # nothing should be ignored
+        if ignore_paths_value is None:
+            # all is fine, nothing to do
+            return
+        elif not args.force: 
+            assert ignore_paths_value is not None    
+            # nothing should be ignored but there is an ignore-path config key set!
+            # BAIL-OUT: possible loss of current ignore-path key value!
+            msg="svn-remote.svn.ignore-paths key exists: {}\nUse --force to delete this key since nothing should be ignored." 
+            raise Exception(msg.format(ignore_paths_value))
+        elif args.force:
+            # assume the user known what he is doing and delete the config key
+            assert ignore_paths_value is not None
+            cli_cmd = ["git", "config", "--local", "--unset","svn-remote.svn.ignore-paths"]
+            DebugLog.print(str(cli_cmd))
+            if args.dry_run:
+                return
+            output = subprocess.check_output(cli_cmd).decode()
+            DebugLog.print(output)
+            return
+        
+        # BUG: all cases should have been handled already!
+        assert False 
+
+    # some path should be ignored!
+    assert len(ignore_paths) > 0
+    desired_ignore_paths_value = "(" + "|".join(ignore_paths) + ")"
+    assert desired_ignore_paths_value != "()"
+
+
+
+    if ignore_paths_value is None:
+        # git setting is not yet set, so do so now   
+        cli_cmd = ["git", "config", "--local", 
+            "svn-remote.svn.ignore-paths", desired_ignore_paths_value]
+        DebugLog.print(str(cli_cmd))
+        if args.dry_run:
+            return
+        subprocess.check_output(cli_cmd)
+        return
+    elif ignore_paths_value == desired_ignore_paths_value:
+        # Nothing to do: ignore-path is already configured!
+        return 
+    elif not args.force:
+        assert ignore_paths_value != desired_ignore_paths_value
+        # current ignore path is incorrect!
+        # BAIL-OUT: possible loss of current ignore-path key value!
+        msg="svn-remote.svn.ignore-paths key exists but is wrong:\nDesired: {}\nActual : {}\nUse --force to update this key." 
+        raise Exception(msg.format(ignore_paths_value, desired_ignore_paths_value))
+    elif args.force:
+        assert ignore_paths_value != desired_ignore_paths_value
+        # assume the user knows what he is doing, update the key!
+        cli_cmd = ["git", "config", "--local", 
+            "svn-remote.svn.ignore-paths", desired_ignore_paths_value]
+        DebugLog.print(str(cli_cmd))
+        if args.dry_run:
+            return
+        subprocess.check_output(cli_cmd)
         return
 
-    # fail if the config key is already set
-    cli = ["git", "config", "--local", "--get", "svn-remote.svn.ignore-paths"]
-    rc = subprocess.call(cli)
-    if rc == 0:
-        raise Exception("the git-svn bridge already has a svn-remote.svn.ignore-paths config key")
+        
+    # BUG: all cases should have been handled already!
+    assert False 
 
-    # set the config key
-    configStr = "(" + "|".join(ignore_paths) + ")"
-    assert configStr != "()"
-    cli_cmd = ["git", "config", "--local", 
-        "svn-remote.svn.ignore-paths", configStr]
-    DebugLog.print(str(cli_cmd))
-    if args.dry_run:
-        return
-    subprocess.check_output(cli_cmd)
 
 
 def git_get_config_key(key:str) -> (None, str):
