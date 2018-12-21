@@ -326,7 +326,7 @@ def git_add_config_key(key:str, value:str):
     """add a local git configuration key value"""
     global args
     try:
-        print("adding config key {} = {}".Format(key,value)) 
+        print("adding config key {} = {}".format(key,value)) 
 
         cli = ["git", "config", "--local", "--add", key, value]
         DebugLog.print(str(cli))
@@ -343,7 +343,7 @@ def git_unset_config_key(key:str):
     """unset/delete a single key from a local git configuration """
 
     try:
-        print("Unset/delete config key {}".Format(key)) 
+        print("Unset/delete config key {}".format(key)) 
 
         cli = ["git", "config", "--local", "--unset", key]
         DebugLog.print(str(cli))
@@ -360,7 +360,7 @@ def git_unsetall_config_key(key:str):
     """unset/delete all given keys from a local git configuration """
     global args
     try:
-        print("Unset/delete all config keys {}".Format(key)) 
+        print("Unset/delete all config keys {}".format(key)) 
         cli = ["git", "config", "--local", "--unset-all", key]
         DebugLog.print(str(cli))
         if args.dry_run:
