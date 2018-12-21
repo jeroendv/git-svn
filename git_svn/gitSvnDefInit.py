@@ -115,7 +115,7 @@ def git_svn_init(url):
         output = subprocess.check_output(cli_cmd).decode()
 
         # remove the nonsensical auto generated svn.remote.svn.fetch config keys
-        git_unsetall_config_key(svn-remote.svn.fetch)
+        git_unsetall_config_key("svn-remote.svn.fetch")
 
         return
 
