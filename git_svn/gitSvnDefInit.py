@@ -309,7 +309,7 @@ def git_set_config_key(key:str, value:str):
     """set a local git configuration key value"""
     global args 
     try:
-        print("setting config key {} = {}".Format(key,value)) 
+        print("setting config key {} = {}".format(key,value)) 
 
         cli = ["git", "config", "--local", key, value]
         DebugLog.print(str(cli))
